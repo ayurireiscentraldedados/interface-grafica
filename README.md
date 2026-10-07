@@ -27,7 +27,10 @@ O produto foi pensado principalmente para:
 
 - Local: `http://localhost:8000`
 - Documentação local: `http://localhost:8000/docs`
-- Endereço público: **[PREENCHER APÓS O DEPLOY]**
+- Endereço público: https://api-seguranca-viaria-ce.onrender.com
+- Documentação interativa: https://api-seguranca-viaria-ce.onrender.com/docs
+- Status da API: https://api-seguranca-viaria-ce.onrender.com/health
+- Monitoramento de disponibilidade: UptimeRobot, com verificação do `/health` a cada 5 minutos
 - Repositório da equipe: https://github.com/ayurireiscentraldedados/interface-grafica
 
 ## Como usar agora
