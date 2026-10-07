@@ -138,7 +138,7 @@ O código deste repositório é disponibilizado sob **MIT License**. Veja `LICEN
 
 ## Contato
 
-- Equipe da ação de extensão — **[PREENCHER E-MAIL INSTITUCIONAL OU CONTATO DURÁVEL DA EQUIPE]**
+- Contato da equipe — [GitHub Issues](https://github.com/ayurireiscentraldedados/interface-grafica/issues)
 - Repositório — https://github.com/ayurireiscentraldedados/interface-grafica
 
 ---
