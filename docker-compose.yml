@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ROAD_SAFETY_DB_PATH: /app/data/ceara_road_safety_api.duckdb
+      ACCESS_LOG_PATH: /app/logs/access.csv
+    volumes:
+      - ./data:/app/data:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
