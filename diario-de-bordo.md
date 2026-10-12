@@ -31,7 +31,7 @@ O arquivo original não traz entradas posteriores a 18/09. **Não preencher com 
 
 > Preencher e commitar no fim da semana. Abaixo está o checklist de atividades desta etapa; marque somente o que realmente ocorreu e registre as horas reais.
 
-**Quem trabalhou e quanto:** [PREENCHER HORAS REAIS POR INTEGRANTE]
+**Quem trabalhou e quanto:** [Jorge 2h]
 
 **O que foi feito:**
 
@@ -42,13 +42,13 @@ O arquivo original não traz entradas posteriores a 18/09. **Não preencher com 
 - [ ] Revisamos `plano-de-acao.md` e distribuímos os papéis.
 - [ ] Definimos pessoas externas reais para o primeiro teste.
 
-**Obstáculo:** [PREENCHER]
+**Obstáculo:** [Entendimento do fluxo API e entendimento da proposta API]
 
 **Contato com o público:** [PREENCHER; se não houve, dizer explicitamente]
 
 **Evidência coletada:** [PREENCHER CAMINHO OU COMMIT]
 
-**Próxima semana:** publicar uma primeira versão acessível externamente e iniciar testes com público externo.
+**Próxima semana:** Revisar os dados e  feitas
 
 ---
 
