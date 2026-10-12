@@ -42,7 +42,11 @@
 
 ### Semana de 07/10
 
+
 **Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Victor Cavalcante Pena — 4h; Felipe dos Reis Pena — 2h; Eduardo Rodrigues Bezerra Loiola — 1h; Jorge Leão Salgado Neto — 1h
+
+> Preencher e commitar no fim da semana. Abaixo está o checklist de atividades desta etapa; marque somente o que realmente ocorreu e registre as horas reais.
+
 
 **O que foi feito:**
 
@@ -53,13 +57,18 @@
 - [x] Revisamos `plano-de-acao.md`, `README.md` e distribuímos os papéis (Ayuri responsável por documentação, clareza do `/docs` e revisão do teste do estranho).
 - [x] Publicamos o endereço público no Render (`https://api-seguranca-viaria-ce.onrender.com`) e definimos perfis externos para os testes.
 
+
 **Obstáculo:** Entendimento inicial do fluxo de empacotamento do DuckDB para a nuvem gratuita sem acoplar o ETL completo da plataforma principal.
+
+
 
 **Contato com o público:** Ainda não houve teste externo executado nesta semana; foi feita a preparação do roteiro em `docs/ROTEIRO-TESTE-EXTERNO.md`.
 
 **Evidência coletada:** Commits `bf5ef69`, `aeb7509`, `dbe5e39`, `9b42f54`, `f39c0f3`, `4bbdf89` e tag `data-2026-08-v1`.
 
+
 **Próxima semana:** Expandir as rotas analíticas, preparar formulário/convites para usuários externos e iniciar a coleta de logs de acesso.
+
 
 ---
 
