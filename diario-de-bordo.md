@@ -48,7 +48,7 @@ O arquivo original não traz entradas posteriores a 18/09. **Não preencher com 
 
 **Evidência coletada:** [PREENCHER CAMINHO OU COMMIT]
 
-**Próxima semana:** Revisar os dados e  feitas
+**Próxima semana:** Revisar os dados e ás análises feitas
 
 ---
 
