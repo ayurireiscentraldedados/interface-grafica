@@ -47,6 +47,8 @@
 
 > Preencher e commitar no fim da semana. Abaixo está o checklist de atividades desta etapa; marque somente o que realmente ocorreu e registre as horas reais.
 
+**Quem trabalhou e quanto:** [Ayuri de Souza dos Reis — 1h; Victor Cavalcante Pena — 1h; Felipe dos Reis Pena — 1h; Eduardo Rodrigues Bezerra Loiola — 1h; Jorge Leão Salgado Neto — 1h]
+
 
 **O que foi feito:**
 
