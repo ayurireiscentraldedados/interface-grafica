@@ -74,7 +74,7 @@ def main() -> None:
     conn.execute("CREATE TABLE api_metadata (key VARCHAR PRIMARY KEY, value VARCHAR)")
     metadata = [
         ("generated_at_utc", datetime.now(timezone.utc).isoformat()),
-        ("source_database", str(source)),
+        ("source_database", source.name),
         ("copied_tables", ",".join(copied)),
     ]
     conn.executemany("INSERT INTO api_metadata VALUES (?, ?)", metadata)
