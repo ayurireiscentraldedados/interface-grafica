@@ -7,7 +7,7 @@ run:
 	uvicorn app.main:app --reload --port 8000
 
 test:
-	pytest -q
+	python -m pytest -q
 
 export:
 	@test -n "$(SOURCE_DB)" || (echo "Use: make export SOURCE_DB=../ceara-road-safety-data-platform/data/warehouse/ceara_road_safety.duckdb" && exit 1)
