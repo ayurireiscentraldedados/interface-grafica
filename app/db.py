@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Iterable
 
 import duckdb
@@ -37,27 +36,36 @@ def quote_identifier(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
 
-def table_exists(conn: duckdb.DuckDBPyConnection, table: str) -> bool:
-    row = conn.execute(
-        "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?",
-        [table],
-    ).fetchone()
-    return bool(row and row[0])
+_COLUMNS_CACHE: dict[tuple[str, int, str], list[str]] = {}
 
 
 def columns(conn: duckdb.DuckDBPyConnection, table: str) -> list[str]:
-    if not table_exists(conn, table):
-        return []
-    rows = conn.execute(
-        """
-        SELECT column_name
-        FROM information_schema.columns
-        WHERE table_name = ?
-        ORDER BY ordinal_position
-        """,
-        [table],
-    ).fetchall()
-    return [str(row[0]) for row in rows]
+    # O banco é somente leitura; consultar o catálogo a cada busca de coluna custava mais da metade
+    # do tempo de cada requisição. A chave inclui a data do arquivo, então trocar o banco renova o cache.
+    path = db_path()
+    try:
+        stamp = path.stat().st_mtime_ns
+    except OSError:
+        stamp = 0
+    key = (str(path), stamp, table)
+    cached = _COLUMNS_CACHE.get(key)
+    if cached is None:
+        rows = conn.execute(
+            """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = ?
+            ORDER BY ordinal_position
+            """,
+            [table],
+        ).fetchall()
+        cached = [str(row[0]) for row in rows]
+        _COLUMNS_CACHE[key] = cached
+    return list(cached)
+
+
+def table_exists(conn: duckdb.DuckDBPyConnection, table: str) -> bool:
+    return bool(columns(conn, table))
 
 
 def resolve_column(

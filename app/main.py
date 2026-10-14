@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import csv
+import logging
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,6 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import access_log_path, db_path
 from app.db import TABLES, connect, table_exists
 from app.routes import router
+
+# O registro padrão do uvicorn escreve o IP e os parâmetros de cada consulta. A API usa só o registro abaixo.
+logging.getLogger("uvicorn.access").disabled = True
 
 app = FastAPI(
     title="API Segurança Viária CE",
@@ -38,6 +41,7 @@ async def access_log(request: Request, call_next):
     duration_ms = round((time.perf_counter() - started) * 1000, 2)
 
     # Deliberadamente não registra IP, nome, e-mail ou outro identificador pessoal.
+    timestamp = datetime.now(timezone.utc).isoformat()
     path = access_log_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     is_new = not path.exists()
@@ -45,13 +49,10 @@ async def access_log(request: Request, call_next):
         writer = csv.writer(handle)
         if is_new:
             writer.writerow(["timestamp_utc", "method", "path", "status", "duration_ms"])
-        writer.writerow([
-            datetime.now(timezone.utc).isoformat(),
-            request.method,
-            request.url.path,
-            response.status_code,
-            duration_ms,
-        ])
+        writer.writerow([timestamp, request.method, request.url.path, response.status_code, duration_ms])
+
+    # O disco gratuito do Render é apagado a cada reinício; esta linha vai também para os logs do serviço.
+    print(f"ACESSO {timestamp} {request.method} {request.url.path} {response.status_code} {duration_ms}", flush=True)
     return response
 
 
