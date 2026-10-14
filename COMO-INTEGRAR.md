@@ -33,7 +33,7 @@ tests/
 ...
 ```
 
-A pasta antiga `03-modelos/` pode ser mantida como referência, mas não deve ser o local principal dos arquivos preenchidos; o modelo recebido orienta que as cópias versionadas fiquem na raiz do repositório da equipe.
+A pasta `03-modelos/` (os modelos em branco da disciplina) foi retirada do repositório. Ela continua no histórico do Git, por exemplo no commit `e6751ab`, e os arquivos preenchidos ficam na raiz do repositório.
 
 ## 3. Preencha imediatamente o que o pacote não pode inventar
 
