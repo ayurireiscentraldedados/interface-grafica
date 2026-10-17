@@ -640,3 +640,240 @@ def test_risco_per_capita_com_empate_ordena_por_nome(tmp_path: Path, monkeypatch
     """)
     dados = c.get("/api/v1/municipios/risco-per-capita").json()["data"]
     assert [r["municipality"] for r in dados] == ["Alfa", "Meio", "Zeta"]
+
+
+# ---------- evolução no tempo e quando acontece (fixture com data e hora) ----------
+
+@pytest.fixture()
+def client_tempo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    # Datas escolhidas com dia da semana conhecido: 2025-01-06 e 2026-01-05 são segundas-feiras.
+    # A base foi observada até 2026-03-31, então 2026 é parcial.
+    return _client_tables(tmp_path, monkeypatch, {
+        "mart_municipality_road_safety_yearly": """
+            SELECT * FROM (VALUES
+                (2025, '2304400', 'Fortaleza', 5, 3, 2, 2500000, TIMESTAMP '2025-12-31 00:00:00'),
+                (2025, '2312908', 'Sobral', 2, 1, 0, 220000, TIMESTAMP '2025-12-31 00:00:00'),
+                (2026, '2304400', 'Fortaleza', 4, 2, 1, 2600000, TIMESTAMP '2026-03-31 00:00:00'),
+                (2026, '2312908', 'Sobral', 1, 0, 1, 221000, TIMESTAMP '2026-03-31 00:00:00')
+            ) t(year, ibge_code, municipality, accidents, deaths, serious_injuries, population,
+                observed_through_date)
+        """,
+        "mart_highway_safety": """
+            SELECT * FROM (VALUES
+                (2025, 'BR-116', 5, 3, 2),
+                (2025, 'BR-222', 2, 1, 0),
+                (2026, 'BR-116', 4, 2, 1),
+                (2026, 'BR-222', 1, 0, 1)
+            ) t(year, highway, accidents, deaths, serious_injuries)
+        """,
+        "mart_accident_map": """
+            SELECT * FROM (VALUES
+                ('a1', TIMESTAMP '2025-01-06 08:00:00', 'Fortaleza', 'BR-116', 1, 0),
+                ('a2', TIMESTAMP '2025-01-10 22:30:00', 'Fortaleza', 'BR-116', 0, 1),
+                ('a3', TIMESTAMP '2025-01-10 23:10:00', 'Sobral', 'BR-222', 1, 0),
+                ('a4', TIMESTAMP '2025-03-15 14:00:00', 'Fortaleza', 'BR-116', 0, 0),
+                ('a5', TIMESTAMP '2025-08-20 06:00:00', 'Sobral', 'BR-222', 0, 0),
+                ('a6', TIMESTAMP '2025-11-03 03:00:00', 'Fortaleza', 'BR-116', 2, 1),
+                ('c1', NULL, 'Fortaleza', 'BR-116', 0, 0),
+                ('b1', TIMESTAMP '2026-01-05 08:30:00', 'Fortaleza', 'BR-116', 1, 0),
+                ('b2', TIMESTAMP '2026-01-09 22:00:00', 'Fortaleza', 'BR-116', 0, 1),
+                ('b3', TIMESTAMP '2026-02-14 14:30:00', 'Sobral', 'BR-222', 0, 1),
+                ('b4', TIMESTAMP '2026-03-20 22:45:00', 'Fortaleza', 'BR-116', 1, 0),
+                ('b5', TIMESTAMP '2026-03-02 09:00:00', 'Fortaleza', 'BR-116', 0, 0)
+            ) t(accident_key, event_timestamp, municipality, highway, deaths, serious_injuries)
+        """,
+    })
+
+
+def _por_periodo(body: dict) -> dict:
+    return {item["periodo"]: item for item in body["data"]}
+
+
+def test_evolucao_anual_marca_ano_parcial_e_compara_o_mesmo_periodo(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/evolucao").json()
+    assert body["fonte"] == "mart anual"
+    assert body["periodo_parcial"] == {"ano": 2026, "ate": "2026-03-31"}
+    series = _por_periodo(body)
+    assert (series[2025]["acidentes"], series[2025]["mortes"], series[2025]["feridos_graves"]) == (7, 4, 2)
+    assert series[2025]["parcial"] is False and series[2025]["var_pct_acidentes"] is None
+    # 2026 (5 acidentes) contra 2025 só até 31/03 (4 acidentes, 2 mortes, 1 ferido grave)
+    assert series[2026]["parcial"] is True
+    assert (series[2026]["var_pct_acidentes"], series[2026]["var_pct_mortes"]) == (25.0, 0.0)
+    assert series[2026]["var_pct_feridos_graves"] == 100.0
+    assert "31/03" in series[2026]["base_comparacao"]
+
+
+def test_evolucao_comparar_total_usa_o_ano_anterior_inteiro(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/evolucao?comparar=total").json()
+    s2026 = _por_periodo(body)[2026]
+    assert s2026["parcial"] is True
+    assert (s2026["var_pct_acidentes"], s2026["var_pct_mortes"], s2026["var_pct_feridos_graves"]) == (
+        -28.57, -50.0, 0.0,
+    )
+    assert s2026["base_comparacao"] == "ano 2025 inteiro"
+
+
+def test_evolucao_filtro_ano_so_filtra_a_saida(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/evolucao?ano=2026").json()
+    assert [item["periodo"] for item in body["data"]] == [2026]
+    assert body["data"][0]["var_pct_acidentes"] == 25.0
+    assert client_tempo.get("/api/v1/analises/evolucao?ano=2031").status_code == 404
+
+
+def test_evolucao_por_rodovia_aceita_as_duas_formas(client_tempo: TestClient):
+    for nome in ("116", "BR-116", "br 116"):
+        body = client_tempo.get("/api/v1/analises/evolucao", params={"rodovia": nome}).json()
+        series = _por_periodo(body)
+        assert (series[2025]["acidentes"], series[2026]["acidentes"]) == (5, 4)
+    assert client_tempo.get("/api/v1/analises/evolucao?rodovia=BR-999").status_code == 404
+
+
+def test_evolucao_por_municipio_ignora_maiusculas(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/evolucao?municipio=fortaleza").json()
+    series = _por_periodo(body)
+    assert (series[2025]["acidentes"], series[2026]["acidentes"]) == (5, 4)
+    assert client_tempo.get("/api/v1/analises/evolucao?municipio=Nada").status_code == 404
+
+
+def test_evolucao_municipio_e_rodovia_juntos_usam_as_ocorrencias(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/evolucao?municipio=Fortaleza&rodovia=116").json()
+    assert body["fonte"] == "ocorrências mapeadas"
+    series = _por_periodo(body)
+    assert (series[2025]["acidentes"], series[2025]["mortes"], series[2025]["feridos_graves"]) == (4, 3, 2)
+    # 2026 (4 acidentes, 2 mortes, 1 ferido grave) contra 2025 até 31/03 (3, 1, 1)
+    assert (series[2026]["var_pct_acidentes"], series[2026]["var_pct_mortes"]) == (33.33, 100.0)
+    assert series[2026]["var_pct_feridos_graves"] == 0.0
+
+
+def test_evolucao_mensal_preenche_meses_vazios_e_compara_com_o_mesmo_mes(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/evolucao?granularidade=mes&municipio=Fortaleza").json()
+    assert body["fonte"] == "ocorrências mapeadas"
+    meses = _por_periodo(body)
+    assert list(meses)[0] == "2025-01" and list(meses)[-1] == "2026-03" and body["count"] == 15
+    assert meses["2025-02"]["acidentes"] == 0
+    assert meses["2026-02"]["acidentes"] == 0
+    assert meses["2026-01"]["var_pct_acidentes"] is None  # dezembro de 2025 tem 0 acidentes
+    assert meses["2026-01"]["var_pct_mesmo_mes_ano_anterior"]["acidentes"] == 0.0
+    assert meses["2026-03"]["var_pct_mesmo_mes_ano_anterior"]["acidentes"] == 100.0
+    assert meses["2026-03"]["var_pct_mesmo_mes_ano_anterior"]["mortes"] is None  # mortes de 03/2025 = 0
+    assert meses["2025-01"]["var_pct_acidentes"] is None
+    assert meses["2025-01"]["var_pct_mesmo_mes_ano_anterior"] == {
+        "acidentes": None, "mortes": None, "feridos_graves": None,
+    }
+    assert all(item["parcial"] is False for item in body["data"])
+
+
+def test_evolucao_mensal_com_ano_devolve_so_aquele_ano(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/evolucao?granularidade=mes&ano=2026").json()
+    assert [item["periodo"] for item in body["data"]] == ["2026-01", "2026-02", "2026-03"]
+    assert body["data"][2]["var_pct_mesmo_mes_ano_anterior"]["acidentes"] == 100.0
+
+
+def test_evolucao_sem_data_nas_ocorrencias(client: TestClient):
+    body = client.get("/api/v1/analises/evolucao").json()
+    assert body["periodo_parcial"] is None
+    series = _por_periodo(body)
+    assert (series[2025]["acidentes"], series[2026]["acidentes"]) == (140, 60)
+    assert series[2026]["parcial"] is None
+    assert series[2026]["var_pct_acidentes"] == -57.14
+    assert client.get("/api/v1/analises/evolucao?granularidade=mes").status_code == 503
+
+
+@pytest.mark.parametrize("url", [
+    "/api/v1/analises/evolucao?granularidade=semana",
+    "/api/v1/analises/evolucao?comparar=outro",
+    "/api/v1/analises/evolucao?ano=1999",
+    "/api/v1/analises/quando-acontece?faixa=minuto",
+    "/api/v1/analises/quando-acontece?min_acidentes=0",
+    "/api/v1/analises/quando-acontece?ano=1999",
+])
+def test_analises_de_tempo_parametro_invalido_retorna_422(client_tempo: TestClient, url: str):
+    assert client_tempo.get(url).status_code == 422
+
+
+def test_quando_acontece_sem_data_retorna_503(client: TestClient):
+    assert client.get("/api/v1/analises/quando-acontece").status_code == 503
+
+
+def test_analises_de_tempo_com_banco_ausente_retornam_503(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROAD_SAFETY_DB_PATH", str(tmp_path / "nao-existe.duckdb"))
+    monkeypatch.setenv("ACCESS_LOG_PATH", str(tmp_path / "access.csv"))
+    from app.main import app
+    c = TestClient(app)
+    assert c.get("/api/v1/analises/evolucao").status_code == 503
+    assert c.get("/api/v1/analises/quando-acontece").status_code == 503
+
+
+def test_quando_acontece_grade_por_turno(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/quando-acontece").json()
+    assert body["total_acidentes"] == 11 and body["total_mortes"] == 6 and body["sem_horario"] == 1
+    assert body["dimensoes_indisponiveis"] == []
+    assert body["count"] == len(body["data"]) == 28
+    celulas = {(c["dia_semana"], c["faixa"]): c for c in body["data"]}
+    assert celulas[("sexta", "noite")] == {
+        "dia_semana": "sexta", "dia_semana_num": 5, "faixa": "noite",
+        "acidentes": 4, "mortes": 2, "acidentes_fatais": 2, "taxa_fatal_pct": 50.0, "pct_do_total": 36.36,
+    }
+    assert (celulas[("segunda", "manhã")]["acidentes"], celulas[("segunda", "manhã")]["taxa_fatal_pct"]) == (3, 66.67)
+    assert celulas[("terça", "tarde")]["acidentes"] == 0 and celulas[("terça", "tarde")]["taxa_fatal_pct"] is None
+    assert [c["dia_semana"] for c in body["data"][:4]] == ["segunda"] * 4
+    assert [c["faixa"] for c in body["data"][:4]] == ["madrugada", "manhã", "tarde", "noite"]
+
+
+def test_quando_acontece_totais_por_dia_e_por_faixa(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/quando-acontece").json()
+    assert {d["dia_semana"]: d["acidentes"] for d in body["por_dia_semana"]} == {
+        "segunda": 4, "terça": 0, "quarta": 1, "quinta": 0, "sexta": 4, "sábado": 2, "domingo": 0,
+    }
+    assert [(f["faixa"], f["acidentes"]) for f in body["por_faixa"]] == [
+        ("madrugada", 1), ("manhã", 4), ("tarde", 2), ("noite", 4),
+    ]
+    assert sum(d["acidentes"] for d in body["por_dia_semana"]) == body["total_acidentes"]
+
+
+def test_quando_acontece_mais_criticos_desempata_por_acidentes(client_tempo: TestClient):
+    top = client_tempo.get("/api/v1/analises/quando-acontece").json()["mais_criticos"]
+    assert [(c["dia_semana"], c["faixa"]) for c in top[:3]] == [
+        ("sexta", "noite"), ("segunda", "manhã"), ("segunda", "madrugada"),
+    ]
+    assert len(top) == 5
+    minimo = client_tempo.get("/api/v1/analises/quando-acontece?min_acidentes=3").json()["mais_criticos"]
+    assert [(c["dia_semana"], c["faixa"]) for c in minimo] == [("sexta", "noite"), ("segunda", "manhã")]
+
+
+def test_quando_acontece_por_hora(client_tempo: TestClient):
+    body = client_tempo.get("/api/v1/analises/quando-acontece?faixa=hora").json()
+    assert len(body["data"]) == 7 * 24
+    celulas = {(c["dia_semana"], c["faixa"]): c for c in body["data"]}
+    assert celulas[("sexta", "22h")]["acidentes"] == 3 and celulas[("sexta", "23h")]["acidentes"] == 1
+    assert [f["faixa"] for f in body["por_faixa"]][:2] == ["00h", "01h"]
+
+
+def test_quando_acontece_filtros(client_tempo: TestClient):
+    for nome in ("222", "BR-222"):
+        body = client_tempo.get("/api/v1/analises/quando-acontece", params={"rodovia": nome}).json()
+        assert body["total_acidentes"] == 3
+    body = client_tempo.get("/api/v1/analises/quando-acontece?municipio=sobral&ano=2026").json()
+    assert body["total_acidentes"] == 1 and body["por_dia_semana"][5]["acidentes"] == 1
+    assert client_tempo.get("/api/v1/analises/quando-acontece?rodovia=BR-999").status_code == 404
+    assert client_tempo.get("/api/v1/analises/quando-acontece?ano=2031").status_code == 404
+
+
+def test_quando_acontece_so_com_data_lista_a_faixa_como_indisponivel(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    c = _client_tables(tmp_path, monkeypatch, {
+        "mart_accident_map": """
+            SELECT * FROM (VALUES
+                ('a', DATE '2025-01-06', 1), ('b', DATE '2025-01-07', 0), ('c', DATE '2025-01-13', 1)
+            ) t(accident_key, accident_date, deaths)
+        """,
+    })
+    body = c.get("/api/v1/analises/quando-acontece").json()
+    assert body["dimensoes_indisponiveis"] == ["faixa"]
+    assert body["data"] == [] and body["por_faixa"] == [] and body["count"] == 0
+    assert [(d["dia_semana"], d["acidentes"]) for d in body["por_dia_semana"]][:2] == [("segunda", 2), ("terça", 1)]
+    assert body["mais_criticos"][0]["dia_semana"] == "segunda"
+
+
+def test_analises_de_tempo_devolvem_sempre_a_mesma_resposta(client_tempo: TestClient):
+    for url in ("/api/v1/analises/quando-acontece", "/api/v1/analises/evolucao?granularidade=mes"):
+        assert client_tempo.get(url).json() == client_tempo.get(url).json()
