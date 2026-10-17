@@ -14,6 +14,7 @@ A contribuição específica desta ação é uma **API pública, documentada e r
 - ranking de rodovias;
 - trechos críticos de 10 km;
 - consulta de acidentes georreferenciados;
+- análises prontas que o usuário não precisaria montar à mão: evolução no tempo (anual e mensal, com ano parcial comparado pelo mesmo período) e mapa de calor por dia da semana e horário;
 - testes automatizados;
 - documentação de fontes, limitações e licença;
 - publicação da API;

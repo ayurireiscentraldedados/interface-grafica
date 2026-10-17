@@ -19,7 +19,7 @@ O produto foi pensado principalmente para:
 - Os dados publicados são o pacote `data-2026-08-v1`: 2024 e 2025 completos, e 2026 parcial, até 31/08/2026.
 - A documentação interativa, onde dá para testar cada rota no navegador, fica em `/docs`.
 - Rotas no ar hoje: municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
-- Três rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais e o perfil de cada rodovia. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
+- Cinco rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo e o mapa de calor por dia da semana e horário. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
 - Os testes automáticos rodam no GitHub a cada envio de código.
 - A API guarda só data e hora, método, caminho, status e tempo de cada consulta. Não guarda nome, e-mail nem IP.
 
@@ -195,6 +195,8 @@ O código deste repositório é disponibilizado sob **MIT License**. Veja `LICEN
 - As taxas per capita dependem das estimativas populacionais do IBGE e de sua metodologia; municípios pequenos têm taxas instáveis, pois poucos casos já alteram muito o valor.
 - A análise de circunstâncias mostra frequência entre acidentes já registrados, não risco de se acidentar; a "causa" é a causa presumida registrada pela PRF, não uma causa comprovada.
 - O perfil por rodovia compara contagens observadas; sem dados de tráfego (veículos por dia, extensão percorrida) não mede risco por viagem nem por km rodado, e rodovias mais longas ou mais movimentadas acumulam mais ocorrências.
+- A variação percentual entre períodos mostra mudança na contagem de acidentes registrados, não mudança de risco. Em recortes pequenos (um município, uma rodovia, um mês), poucos casos já mudam muito o percentual. O ano parcial é comparado com o mesmo intervalo do ano anterior, e não com o ano inteiro.
+- O mapa de calor por dia da semana e horário mostra onde os acidentes se concentram, não onde é mais perigoso: sem dados de tráfego, não dá para saber se sexta à noite concentra mais acidentes por ter mais gente na estrada.
 - Associação entre clima, local, horário ou tipo de veículo e acidentes não implica causalidade.
 - Trechos com maior número observado de acidentes são concentrações históricas na base, não previsões de perigo futuro.
 - A API é somente leitura e não recebe registros de acidentes da população.
@@ -362,6 +364,69 @@ Cada perfil traz `posicao`, `acidentes`, `mortes`, `feridos_graves`, `mortes_por
 - `404`: rodovia/ano não encontrada;
 - `422`: parâmetro fora dos valores aceitos;
 - `503`: banco indisponível ou tabela de rodovias sem coluna de mortes para a ordenação escolhida.
+
+## `GET /api/v1/analises/evolucao`
+
+**O que faz:** devolve a série de acidentes, mortes e feridos graves por ano ou por mês, com a variação percentual contra o período anterior. Evita chamar a API uma vez por ano e montar a série à mão. Sem filtro, vale o total do Ceará.
+
+**Parâmetros:**
+
+- `granularidade` — `ano` (padrão) ou `mes`;
+- `ano` — opcional; só escolhe quais períodos aparecem, as variações continuam calculadas contra o período anterior;
+- `municipio` — opcional, pelo nome (sem diferenciar maiúsculas);
+- `rodovia` — opcional; aceita `116` ou `BR-116`;
+- `comparar` — `mesmo_periodo` (padrão) ou `total`. Só muda o resultado quando o último ano é parcial.
+
+```bash
+curl 'http://127.0.0.1:8000/api/v1/analises/evolucao?granularidade=mes&municipio=Fortaleza&ano=2026'
+```
+
+> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
+
+Cada período traz `periodo`, `acidentes`, `mortes`, `feridos_graves`, `parcial`, `var_pct_acidentes`, `var_pct_mortes`, `var_pct_feridos_graves` e `base_comparacao`, que diz com o quê o período foi comparado. Na série mensal, a variação é contra o mês anterior e vem também `var_pct_mesmo_mes_ano_anterior`, que não sofre com sazonalidade. A variação é `null` quando o período-base é zero ou não existe. Meses sem nenhum acidente aparecem com zero.
+
+**Ano parcial.** A resposta traz `periodo_parcial` (por exemplo, `{"ano": 2026, "ate": "2026-08-31"}`), tirado da data até a qual a base foi observada. Com `comparar=mesmo_periodo`, o ano parcial é comparado com o **mesmo intervalo** do ano anterior (1º de janeiro até 31/08), para 2026 não parecer uma queda de 30% só por ter menos meses. Com `comparar=total`, ele é comparado com o ano anterior inteiro.
+
+**De onde vêm os números.** `fonte` informa: `mart anual` (mesmos totais de `/rodovias` e de `/municipios/{ibge}/indicadores`) ou `ocorrências mapeadas` (série mensal, ou município e rodovia juntos). No banco publicado, os dois dão os mesmos totais anuais; se uma exportação futura divergir, o `aviso` já diz isso. Ocorrências sem data ficam fora da série mensal.
+
+**Erros possíveis:**
+
+- `404`: município, rodovia ou ano sem nenhum registro;
+- `422`: parâmetro fora dos valores aceitos;
+- `503`: banco indisponível, ou série mensal pedida com uma tabela de acidentes sem data da ocorrência.
+
+## `GET /api/v1/analises/quando-acontece`
+
+**O que faz:** mostra quando os acidentes acontecem, cruzando dia da semana com faixa horária, para montar um mapa de calor. Responde perguntas como "sexta à noite é pior?".
+
+**Parâmetros:**
+
+- `ano` — opcional;
+- `municipio` — opcional, pelo nome;
+- `rodovia` — opcional; aceita `116` ou `BR-116`;
+- `faixa` — `turno` (padrão: `madrugada` 0h–5h59, `manhã` 6h–11h59, `tarde` 12h–17h59, `noite` 18h–23h59) ou `hora` (24 faixas, `00h` a `23h`);
+- `min_acidentes` — mínimo de acidentes por célula para entrar em `mais_criticos`, padrão 1.
+
+```bash
+curl 'http://127.0.0.1:8000/api/v1/analises/quando-acontece?ano=2025&faixa=turno'
+```
+
+> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
+
+A resposta traz:
+
+- `data`: a grade completa (7 dias × as faixas), **incluindo as células com zero**, sempre na mesma ordem (segunda a domingo, faixas do começo ao fim do dia). Cada célula tem `dia_semana`, `dia_semana_num` (1 = segunda), `faixa`, `acidentes`, `mortes`, `acidentes_fatais`, `taxa_fatal_pct` e `pct_do_total`;
+- `por_dia_semana` e `por_faixa`: os totais de cada dia e de cada faixa;
+- `mais_criticos`: até 5 células, ordenadas por mortes e depois por acidentes;
+- `total_acidentes`, `total_mortes` e `sem_horario` (ocorrências sem data ou hora, que ficam fora das células).
+
+Se a tabela tiver data mas não tiver hora, `faixa` aparece em `dimensoes_indisponiveis`, e a resposta traz só `por_dia_semana`.
+
+**Erros possíveis:**
+
+- `404`: município, rodovia ou ano sem nenhum registro;
+- `422`: parâmetro fora dos valores aceitos;
+- `503`: banco indisponível, ou tabela de acidentes sem data da ocorrência.
 
 ## `GET /api/v1/rodovias`
 

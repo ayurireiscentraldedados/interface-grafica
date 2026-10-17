@@ -36,10 +36,10 @@ def quote_identifier(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
 
-_COLUMNS_CACHE: dict[tuple[str, int, str], list[str]] = {}
+_COLUMNS_CACHE: dict[tuple[str, int, str], list[tuple[str, str]]] = {}
 
 
-def columns(conn: duckdb.DuckDBPyConnection, table: str) -> list[str]:
+def _catalog(conn: duckdb.DuckDBPyConnection, table: str) -> list[tuple[str, str]]:
     # O banco é somente leitura; consultar o catálogo a cada busca de coluna custava mais da metade
     # do tempo de cada requisição. A chave inclui a data do arquivo, então trocar o banco renova o cache.
     path = db_path()
@@ -52,16 +52,27 @@ def columns(conn: duckdb.DuckDBPyConnection, table: str) -> list[str]:
     if cached is None:
         rows = conn.execute(
             """
-            SELECT column_name
+            SELECT column_name, data_type
             FROM information_schema.columns
             WHERE table_name = ?
             ORDER BY ordinal_position
             """,
             [table],
         ).fetchall()
-        cached = [str(row[0]) for row in rows]
+        cached = [(str(row[0]), str(row[1]).upper()) for row in rows]
         _COLUMNS_CACHE[key] = cached
-    return list(cached)
+    return cached
+
+
+def columns(conn: duckdb.DuckDBPyConnection, table: str) -> list[str]:
+    return [name for name, _ in _catalog(conn, table)]
+
+
+def column_type(conn: duckdb.DuckDBPyConnection, table: str, column: str) -> str | None:
+    for name, data_type in _catalog(conn, table):
+        if name.lower() == column.lower():
+            return data_type
+    return None
 
 
 def table_exists(conn: duckdb.DuckDBPyConnection, table: str) -> bool:
