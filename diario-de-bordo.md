@@ -54,17 +54,17 @@ O arquivo original não traz entradas posteriores a 18/09. **Não preencher com 
 
 ### Semana de 14/10
 
-**Quem trabalhou e quanto:** [PREENCHER]
+**Quem trabalhou e quanto:** [Jorge -1h]
 
-**O que foi feito:** [PREENCHER]
+**O que foi feito:** [Testes de API e FORMULARIO DE PESQUISA TECNICO]
 
-**Obstáculo:** [PREENCHER]
+**Obstáculo:** [User para a API]
 
-**Contato com o público:** [PREENCHER]
+**Contato com o público:** [Via Forms; https://docs.google.com/forms/d/e/1FAIpQLSd91nFu0ggNuwoBgZqxoXoMKLha7jGSmQ1hYihQPFp6WCMYfQ/viewform?usp=publish-editor]
 
-**Evidência coletada:** [PREENCHER]
+**Evidência coletada:** [Aguardando respostas do formulários]
 
-**Próxima semana:** [PREENCHER]
+**Próxima semana:** [Divulgar a API]
 
 ---
 
