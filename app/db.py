@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Iterable
 
 import duckdb
@@ -37,27 +36,47 @@ def quote_identifier(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
 
-def table_exists(conn: duckdb.DuckDBPyConnection, table: str) -> bool:
-    row = conn.execute(
-        "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?",
-        [table],
-    ).fetchone()
-    return bool(row and row[0])
+_COLUMNS_CACHE: dict[tuple[str, int, str], list[tuple[str, str]]] = {}
+
+
+def _catalog(conn: duckdb.DuckDBPyConnection, table: str) -> list[tuple[str, str]]:
+    # O banco é somente leitura; consultar o catálogo a cada busca de coluna custava mais da metade
+    # do tempo de cada requisição. A chave inclui a data do arquivo, então trocar o banco renova o cache.
+    path = db_path()
+    try:
+        stamp = path.stat().st_mtime_ns
+    except OSError:
+        stamp = 0
+    key = (str(path), stamp, table)
+    cached = _COLUMNS_CACHE.get(key)
+    if cached is None:
+        rows = conn.execute(
+            """
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name = ?
+            ORDER BY ordinal_position
+            """,
+            [table],
+        ).fetchall()
+        cached = [(str(row[0]), str(row[1]).upper()) for row in rows]
+        _COLUMNS_CACHE[key] = cached
+    return cached
 
 
 def columns(conn: duckdb.DuckDBPyConnection, table: str) -> list[str]:
-    if not table_exists(conn, table):
-        return []
-    rows = conn.execute(
-        """
-        SELECT column_name
-        FROM information_schema.columns
-        WHERE table_name = ?
-        ORDER BY ordinal_position
-        """,
-        [table],
-    ).fetchall()
-    return [str(row[0]) for row in rows]
+    return [name for name, _ in _catalog(conn, table)]
+
+
+def column_type(conn: duckdb.DuckDBPyConnection, table: str, column: str) -> str | None:
+    for name, data_type in _catalog(conn, table):
+        if name.lower() == column.lower():
+            return data_type
+    return None
+
+
+def table_exists(conn: duckdb.DuckDBPyConnection, table: str) -> bool:
+    return bool(columns(conn, table))
 
 
 def resolve_column(
