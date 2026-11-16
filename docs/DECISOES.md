@@ -15,6 +15,7 @@ A contribuição específica desta ação é uma **API pública, documentada e r
 - trechos críticos de 10 km;
 - consulta de acidentes georreferenciados;
 - análises prontas que o usuário não precisaria montar à mão: evolução no tempo (anual e mensal, com ano parcial comparado pelo mesmo período) e mapa de calor por dia da semana e horário;
+- análises sobre as duas tabelas da camada Gold que já eram exportadas mas não tinham rota: acidentes por condição do tempo (Open-Meteo) e tipos de veículo envolvidos;
 - testes automatizados;
 - documentação de fontes, limitações e licença;
 - publicação da API;
