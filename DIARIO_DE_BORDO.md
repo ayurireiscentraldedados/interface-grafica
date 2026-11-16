@@ -1,42 +1,90 @@
 # Diário de bordo
 
-## Felipe
 
-**O que fez:**
+Semana 1 – 18/09/2026
+Felipe: Pesquisas para implementação de uma nova rota 
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-- Cobrou o grupo para entregarem as modificações
-- Criou este diário de bordo.
-- Criou três rotas novas de análise na API:
+Semana 2 – 25/09/2026
+Felipe: critou a rota `/api/v1/analises/circunstancias`
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-### 1. Risco per capita
+Semana 3 – 02/10/2026
+Felipe: Pesquisas para implementação de uma nova rota
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-**Rota:** `/api/v1/municipios/risco-per-capita`
+Semana 4 – 09/10/2026
+Felipe: criou a rota `/api/v1/municipios/risco-per-capita`
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-Ranqueia os municípios por acidentes, mortes ou feridos graves **a cada 100 mil habitantes**. Assim cidades pequenas e grandes ficam comparáveis, e Fortaleza não lidera só por ser grande.
+Semana 5 – 16/10/2026
+Felipe: Pesquisas para implementação de uma nova rota
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-### 2. Circunstâncias dos acidentes
+Semana 6 – 23/10/2026
+Felipe: `/api/v1/analises/perfil-rodovia`
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-**Rota:** `/api/v1/analises/circunstancias`
+Semana 7 – 30/10/2026
+Felipe: Pesquisas para implementação de novas rotas: as tabelas de clima (Open-Meteo) e de tipo de veículo já estavam no banco publicado, mas nenhuma rota as usava
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-Mostra quais circunstâncias aparecem mais nos acidentes fatais. Dá para olhar por causa presumida, tipo de acidente, condição da pista ou iluminação. Para cada categoria, traz:
+Semana 8 – 06/11/2026
+Felipe: criou a rota `/api/v1/analises/clima`
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-- quantos acidentes houve;
-- quantos foram fatais;
-- a fatia dela no total de fatais.
+Semana 9 – 13/11/2026
+Felipe: criou a rota `/api/v1/analises/veiculos`
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-### 3. Perfil por rodovia
+Semana 10 – 20/11/2026
+Felipe:
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-**Rota:** `/api/v1/analises/perfil-rodovia`
+Semana 11 – 27/11/2026
+Felipe:
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-Monta um perfil comparável de cada rodovia federal. Traz:
+Semana 12 – 04/12/2026
+Felipe:
+Ayuri:
+Eduardo:
+Jorge:
+Victor:
 
-- acidentes;
-- mortes;
-- proporção de acidentes fatais;
-- o que predomina em horário, clima e tipo de veículo;
-- os trechos mais críticos.
-
----
 
 ## Eduardo
 
