@@ -2,7 +2,7 @@
 
 ## Identificação
 
-- **Equipe:** Ayuri de Souza dos Reis; Victor Cavalcante Pena; Felipe dos Reis Pena; Eduardo Rodrigues Bezerra Loiola; Jorge Leão Salgado Neto. **Matrículas:** [PREENCHER].
+- **Equipe:** Ayuri de Souza dos Reis; Victor Cavalcante Pena; Felipe dos Reis Pena; Eduardo Rodrigues Bezerra Loiola; Jorge Leão Salgado Neto. **Matrículas:** 536482.
 - **Trilha:** **A — API pública de dados abertos**.
 - **Área temática da PREX:** **Tecnologia e Produção** (proposta da equipe; confirmar se o professor deseja outra classificação).
 - **Por que essa área:** o produto transforma dados públicos já tratados em um serviço digital aberto e reutilizável por pessoas e sistemas externos.
