@@ -15,14 +15,48 @@ from app.routes import router
 # O registro padrão do uvicorn escreve o IP e os parâmetros de cada consulta. A API usa só o registro abaixo.
 logging.getLogger("uvicorn.access").disabled = True
 
+OPENAPI_TAGS = [
+    {
+        "name": "meta",
+        "description": "Verificação de disponibilidade (`/health`) e caminhos principais do serviço.",
+    },
+    {
+        "name": "consultas",
+        "description": (
+            "Consultas diretas aos datasets e recortes de municípios, rodovias, trechos críticos (10 km) "
+            "e ocorrências georreferenciadas."
+        ),
+    },
+    {
+        "name": "analises",
+        "description": (
+            "Análises agregadas prontas para uso: risco municipal por 100 mil habitantes, circunstâncias "
+            "em acidentes fatais, perfil comparativo por rodovia, evolução temporal e distribuição por "
+            "dia da semana e faixa horária."
+        ),
+    },
+]
+
 app = FastAPI(
     title="API Segurança Viária CE",
     version="0.1.0",
     description=(
-        "API pública para consulta de indicadores e recortes de segurança viária no Ceará, "
-        "construída a partir da camada Gold do Ceará Road Safety Data Platform."
+        "API pública para consulta de indicadores e recortes de segurança viária em rodovias federais "
+        "no Ceará (PRF, IBGE e Open-Meteo), construída a partir da camada Gold do Ceará Road Safety Data Platform.\n\n"
+        "### Como começar sem ajuda\n"
+        "1. Consulte `/api/v1/datasets` para ver as tabelas e colunas disponíveis no banco publicado.\n"
+        "2. Consulte `/api/v1/municipios?ano=2025` para descobrir o `ibge_code` de qualquer município "
+        "(ex.: Fortaleza = `2304400`, Sobral = `2312908`, Caucaia = `2303709`).\n"
+        "3. Nos filtros de `rodovia`, você pode informar apenas o número (`116`) ou o prefixo (`BR-116`).\n"
+        "4. **Atenção ao recorte temporal:** os anos de `2024` e `2025` estão completos; `2026` é parcial "
+        "(observado até `31/08/2026` no pacote `data-2026-08-v1`)."
     ),
-    license_info={"name": "MIT (código da equipe)"},
+    openapi_tags=OPENAPI_TAGS,
+    contact={
+        "name": "Equipe API Segurança Viária CE — GitHub Issues",
+        "url": "https://github.com/ayurireiscentraldedados/interface-grafica/issues",
+    },
+    license_info={"name": "MIT (código da equipe)", "url": "https://opensource.org/licenses/MIT"},
 )
 
 app.add_middleware(
