@@ -1,29 +1,29 @@
 # Checklist operacional — Marco 2 (13/11)
 
 ## Produto
-- [ ] URL pública responde.
-- [ ] `/health` retorna `status: ok`.
-- [ ] `/docs` abre fora da rede/máquina da equipe.
-- [ ] Rotas principais testadas em navegador/curl.
-- [ ] `pytest -q` verde.
-- [ ] CI verde.
+- [x] URL pública responde (`https://api-seguranca-viaria-ce.onrender.com`).
+- [x] `/health` retorna `status: ok`.
+- [x] `/docs` abre fora da rede/máquina da equipe.
+- [x] Rotas principais testadas em navegador/curl.
+- [x] `pytest -q` verde (`94 passed`).
+- [x] CI verde.
 
 ## D3
-- [ ] README diz para quem é.
-- [ ] Exemplo completo funciona.
-- [ ] Fontes, endereços e datas conferidos.
-- [ ] Licença dos dados e do código declaradas.
-- [ ] Limitações explícitas.
-- [ ] Contato durável preenchido.
-- [ ] Rotas com parâmetros/exemplos/erros.
+- [x] README diz para quem é.
+- [x] Exemplo completo funciona.
+- [x] Fontes, endereços e datas conferidos.
+- [x] Licença dos dados e do código declaradas.
+- [x] Limitações explícitas.
+- [x] Contato durável preenchido.
+- [x] Rotas com parâmetros/exemplos/erros (tanto no `README.md` quanto no `/docs`).
 
 ## D2
-- [ ] Pelo menos uma pessoa externa tentou usar sem ajuda.
-- [ ] Feedback salvo em `evidencias/`.
-- [ ] Linha correspondente no `evidencias.csv`.
-- [ ] Resumo de acessos salvo como evidência quantitativa.
+- [x] Pelo menos uma pessoa externa tentou usar sem ajuda (3 testes externos registrados).
+- [x] Feedback salvo em `evidencias/` (`2026-10-23-teste-externo-01.md`, `2026-11-06-teste-externo-02.md`, `2026-11-12-teste-externo-03.md`).
+- [x] Linha correspondente no `evidencias.csv`.
+- [x] Resumo de acessos salvo como evidência quantitativa (`evidencias/2026-11-12-resumo-acessos.md` e `evidencias/2026-11-12-logs-render.txt`).
 
 ## D4
-- [ ] Diário tem entrada de todas as semanas disponíveis.
-- [ ] Obstáculos e cortes estão registrados.
-- [ ] Commit/tag do marco criado e publicado.
+- [x] Diário tem entrada de todas as semanas disponíveis (`diario-de-bordo.md`).
+- [x] Obstáculos e cortes estão registrados.
+- [x] Commit/tag do marco criado e publicado (`marco-2`).
