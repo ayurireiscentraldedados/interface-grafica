@@ -10,7 +10,7 @@
 
 ## Campo 1 — O problema
 
-Uma pessoa que queira analisar segurança viária no Ceará precisa localizar bases de fontes diferentes, entender formatos e chaves, tratar dados e relacionar acidentes, municípios, população e clima antes de conseguir responder perguntas simples; isso cria uma barreira para estudantes, pesquisadores, jornalistas e desenvolvedores que não querem reconstruir toda a preparação dos dados.
+Uma estudante de jornalismo que quer escrever uma pauta sobre acidentes nas rodovias federais do Ceará precisa localizar bases da PRF, do IBGE e de clima, entender formatos e chaves e cruzá-las numa planilha antes de conseguir responder a uma pergunta simples como "qual trecho da BR-116 mais concentra acidentes?"; a mesma barreira atinge pesquisadores, estudantes e desenvolvedores que não querem reconstruir toda a preparação dos dados.
 
 ## Campo 2 — O público externo
 

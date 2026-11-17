@@ -18,8 +18,8 @@ O produto foi pensado principalmente para:
 - A API está **no ar**: https://api-seguranca-viaria-ce.onrender.com (conferida em 16/11/2026). Qualquer pessoa consulta sem cadastro e sem instalar nada.
 - Os dados publicados são o pacote `data-2026-08-v1`: 2024 e 2025 completos, e 2026 parcial, até 31/08/2026.
 - A documentação interativa, onde dá para testar cada rota no navegador, fica em `/docs`, organizada nas seções `meta`, `consultas` e `analises`, com guia rápido de uso ("Como começar sem ajuda") e exemplos nos parâmetros (`ibge_code=2304400`, formato `116` ou `BR-116`).
-- Rotas no ar hoje: municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
-- Sete rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo, o mapa de calor por dia da semana e horário, os acidentes por condição do tempo e os tipos de veículo envolvidos. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
+- Rotas no ar hoje: lista de datasets, municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
+- Oito rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo, o mapa de calor por dia da semana e horário, os acidentes por condição do tempo, os tipos de veículo envolvidos e a comparação entre regiões do IBGE. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
 - Os testes automáticos rodam no GitHub a cada envio de código.
 - A API guarda só data e hora, método, caminho, status e tempo de cada consulta. Não guarda nome, e-mail nem IP.
 
@@ -672,6 +672,7 @@ O resultado mostra o total de consultas úteis, o período observado e quanto ca
 ├── tests/
 ├── pytest.ini
 ├── README.md
+├── CONTRIBUTING.md
 ├── plano-de-acao.md
 ├── diario-de-bordo.md
 ├── evidencias.csv
@@ -679,6 +680,7 @@ O resultado mostra o total de consultas úteis, o período observado e quanto ca
 ├── marco-2.md
 ├── marco-3.md
 ├── socializacao.md
+├── autoavaliacao-<integrante>.md
 ├── Dockerfile
 └── docker-compose.yml
 ```
