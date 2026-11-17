@@ -42,6 +42,26 @@ SEGMENT_END_COLS = ["segment_end_km", "end_km", "km_final", "km_fim"]
 DATE_COLS = ["event_timestamp", "accident_date", "data_inversa", "event_date", "date", "data"]
 TIME_COLS = ["accident_time", "horario", "hora_inversa", "time", "hour", "hora"]
 OBSERVED_THROUGH_COLS = ["observed_through_date"]
+FATAL_ACCIDENTS_COLS = ["fatal_accidents", "acidentes_fatais"]
+WEATHER_LABEL_COLS = ["weather_group_label", "weather_label", "grupo_clima", "weather_group"]
+WEATHER_CODE_COLS = ["weather_group", "weather_code"]
+PRECIPITATING_COLS = ["is_precipitating", "com_precipitacao"]
+WEATHER_AVERAGES = {
+    "temperatura_c": ["avg_temperature", "avg_temperature_c", "temperatura_media"],
+    "umidade_pct": ["avg_humidity", "umidade_media"],
+    "precipitacao_mm": ["avg_precipitation_mm", "precipitacao_media_mm"],
+    "visibilidade_km": ["avg_visibility_km", "visibilidade_media_km"],
+    "vento_kmh": ["avg_wind_speed_kmh", "vento_medio_kmh"],
+}
+REGION_LEVELS = {
+    "intermediaria": ["intermediate_region", "regiao_intermediaria"],
+    "imediata": ["immediate_region", "regiao_imediata"],
+}
+VEHICLES_INVOLVED_COLS = ["vehicles_involved", "vehicles", "veiculos_envolvidos", "veiculos"]
+OCCUPANTS_COLS = ["occupants", "ocupantes"]
+MINOR_INJURIES_COLS = ["minor_injuries", "feridos_leves"]
+UNINJURED_COLS = ["uninjured", "ilesos"]
+VEHICLE_AGE_COLS = ["avg_vehicle_age", "idade_media_veiculo"]
 METRICS = ("acidentes", "mortes", "feridos_graves")
 DAYS_OF_WEEK = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
 SHIFTS = [("madrugada", 0, 5), ("manhã", 6, 11), ("tarde", 12, 17), ("noite", 18, 23)]
@@ -1281,6 +1301,412 @@ def quando_acontece(
             "por_dia_semana": por_dia,
             "por_faixa": por_faixa,
             "mais_criticos": top,
+        }
+    finally:
+        conn.close()
+
+
+def _sum_sql(col: str | None) -> str:
+    return f"SUM({quote_identifier(col)})" if col else "NULL"
+
+
+def _weighted_avg_sql(col: str, weight: str) -> str:
+    # Média de médias: pondera pelo peso só onde a média existe, para um grupo sem medição não puxar para zero.
+    c = quote_identifier(col)
+    return f"SUM({c} * {weight}) / NULLIF(SUM(CASE WHEN {c} IS NOT NULL THEN {weight} END), 0)"
+
+
+def _rate(part, whole):
+    if part is None or not whole:
+        return None
+    return round(100 * part / whole, 2)
+
+
+def _year_where(conn, table: str, ano: int | None) -> tuple[str, list[object]]:
+    year_col = resolve_column(conn, table, YEAR_COLS)
+    if ano is None or year_col is None:
+        return "", []
+    return f" WHERE {quote_identifier(year_col)} = ?", [ano]
+
+
+def _weather_groups(conn, table: str, keys: dict[str, str], ano: int | None) -> list[dict]:
+    """Soma a mart de clima por `keys` (apelido -> expressão SQL), com médias ponderadas pelos acidentes."""
+    acc = quote_identifier(resolve_column(conn, table, ACCIDENTS_COLS, required=True))
+    select = [f"{expr} AS {alias}" for alias, expr in keys.items()]
+    select += [
+        f"SUM({acc}) AS acidentes",
+        f"{_sum_sql(resolve_column(conn, table, DEATHS_COLS))} AS mortes",
+        f"{_sum_sql(resolve_column(conn, table, SERIOUS_COLS))} AS feridos_graves",
+        f"{_sum_sql(resolve_column(conn, table, FATAL_ACCIDENTS_COLS))} AS acidentes_fatais",
+    ]
+    averages = []
+    for alias, candidates in WEATHER_AVERAGES.items():
+        col = resolve_column(conn, table, candidates)
+        if col:
+            select.append(f"{_weighted_avg_sql(col, acc)} AS {alias}")
+            averages.append(alias)
+    where, params = _year_where(conn, table, ano)
+    group = ", ".join(str(i + 1) for i in range(len(keys)))
+    sql = f"SELECT {', '.join(select)} FROM {quote_identifier(table)}{where} GROUP BY {group}"
+
+    rows = rows_as_dicts(conn.execute(sql, params))
+    total = sum(r["acidentes"] or 0 for r in rows)
+    items = []
+    for r in rows:
+        acidentes = _number(r["acidentes"]) or 0
+        mortes = _number(r["mortes"])
+        fatais = _number(r["acidentes_fatais"])
+        items.append(
+            {
+                **{k: r[k] for k in keys},
+                "acidentes": acidentes,
+                "mortes": mortes,
+                "feridos_graves": _number(r["feridos_graves"]),
+                "acidentes_fatais": fatais,
+                "pct_dos_acidentes": _rate(acidentes, total),
+                "mortes_por_100_acidentes": _rate(mortes, acidentes),
+                "pct_acidentes_fatais": _rate(fatais, acidentes),
+                "medias": {k: (None if r[k] is None else round(r[k], 2)) for k in averages},
+            }
+        )
+    return items
+
+
+@router.get(
+    "/analises/clima",
+    summary="Acidentes e gravidade por condição do tempo no momento da ocorrência (Open-Meteo)",
+)
+def clima(
+    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
+    ordenar_por: Annotated[
+        Literal["acidentes", "mortes", "mortes_por_100_acidentes"], Query()
+    ] = "acidentes",
+    min_acidentes: Annotated[int, Query(ge=1)] = 1,
+) -> dict:
+    conn = connect()
+    try:
+        table = _ensure_table(conn, "weather")
+        label_col = resolve_column(conn, table, WEATHER_LABEL_COLS, required=True)
+        code_col = resolve_column(conn, table, WEATHER_CODE_COLS)
+        precip_col = resolve_column(conn, table, PRECIPITATING_COLS)
+        if ordenar_por != "acidentes" and resolve_column(conn, table, DEATHS_COLS) is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Ordenação '{ordenar_por}' indisponível: a tabela de clima publicada não tem "
+                    f"coluna de mortes (aceitas: {', '.join(DEATHS_COLS)})."
+                ),
+            )
+
+        keys = {"categoria": _category_sql(label_col)}
+        if code_col and code_col != label_col:
+            keys["codigo"] = quote_identifier(code_col)
+        if precip_col:
+            keys["com_precipitacao"] = f"CAST({quote_identifier(precip_col)} AS BOOLEAN)"
+
+        groups = _weather_groups(conn, table, keys, ano)
+        if ano is not None and not groups:
+            raise HTTPException(status_code=404, detail="Ano não encontrado.")
+
+        total_mortes = (
+            sum(g["mortes"] for g in groups) if groups and groups[0]["mortes"] is not None else None
+        )
+        data = [g for g in groups if g["acidentes"] >= min_acidentes]
+        data.sort(key=lambda g: (-(g[ordenar_por] or 0), -g["acidentes"], g["categoria"]))
+
+        por_precipitacao = []
+        if precip_col:
+            labels = {False: "Sem precipitação", True: "Com precipitação", None: "Não informado"}
+            flag = {"com_precipitacao": f"CAST({quote_identifier(precip_col)} AS BOOLEAN)"}
+            por_precipitacao = [
+                {"categoria": labels[g["com_precipitacao"]], **g}
+                for g in sorted(
+                    _weather_groups(conn, table, flag, ano),
+                    key=lambda g: list(labels).index(g["com_precipitacao"]),
+                )
+            ]
+
+        return {
+            "count": len(data),
+            "filters": {"ano": ano, "ordenar_por": ordenar_por, "min_acidentes": min_acidentes},
+            "total_acidentes": sum(g["acidentes"] for g in groups),
+            "total_mortes": total_mortes,
+            "dimensoes_indisponiveis": [] if precip_col else ["precipitacao"],
+            "aviso": (
+                "Condição do tempo estimada pelo Open-Meteo para o horário e o local de cada acidente "
+                "registrado pela PRF em rodovias federais; pode divergir da condição anotada pelo "
+                "policial (campo weather_condition de /acidentes). Mostra em que tempo os acidentes "
+                "registrados aconteceram, não o risco de se acidentar em cada condição: sem saber "
+                "quantas horas ou viagens houve com chuva e sem chuva, não dá para dizer qual é mais "
+                "perigosa. Não indica causalidade. Categorias com poucos acidentes têm taxas "
+                "instáveis. As médias são ponderadas pelo número de acidentes."
+            ),
+            "data": data,
+            "por_precipitacao": por_precipitacao,
+        }
+    finally:
+        conn.close()
+
+
+@router.get(
+    "/analises/veiculos",
+    summary="Tipos de veículo envolvidos nos acidentes e gravidade para os ocupantes",
+)
+def veiculos(
+    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
+    ordenar_por: Annotated[
+        Literal[
+            "veiculos",
+            "mortes",
+            "feridos_graves",
+            "mortes_por_100_veiculos",
+            "feridos_graves_por_100_veiculos",
+        ],
+        Query(),
+    ] = "veiculos",
+    min_veiculos: Annotated[int, Query(ge=1)] = 1,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> dict:
+    conn = connect()
+    try:
+        table = _ensure_table(conn, "vehicles")
+        type_col = resolve_column(conn, table, VEHICLE_COLS, required=True)
+        involved_col = resolve_column(conn, table, VEHICLES_INVOLVED_COLS, required=True)
+        deaths_col = resolve_column(conn, table, DEATHS_COLS)
+        serious_col = resolve_column(conn, table, SERIOUS_COLS)
+        age_col = resolve_column(conn, table, VEHICLE_AGE_COLS)
+        needed = "mortes" if "mortes" in ordenar_por else "feridos_graves" if "feridos" in ordenar_por else None
+        if needed and (deaths_col if needed == "mortes" else serious_col) is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Ordenação '{ordenar_por}' indisponível: a tabela de veículos publicada não tem "
+                    f"coluna de {needed.replace('_', ' ')}."
+                ),
+            )
+
+        involved = quote_identifier(involved_col)
+        select = [
+            f"{_category_sql(type_col)} AS tipo_veiculo",
+            f"SUM({involved}) AS veiculos_envolvidos",
+            f"{_sum_sql(resolve_column(conn, table, ACCIDENTS_COLS))} AS acidentes",
+            f"{_sum_sql(resolve_column(conn, table, OCCUPANTS_COLS))} AS ocupantes",
+            f"{_sum_sql(deaths_col)} AS mortes",
+            f"{_sum_sql(serious_col)} AS feridos_graves",
+            f"{_sum_sql(resolve_column(conn, table, MINOR_INJURIES_COLS))} AS feridos_leves",
+            f"{_sum_sql(resolve_column(conn, table, UNINJURED_COLS))} AS ilesos",
+            f"{_weighted_avg_sql(age_col, involved) if age_col else 'NULL'} AS idade_media_veiculo",
+        ]
+        where, params = _year_where(conn, table, ano)
+        sql = f"SELECT {', '.join(select)} FROM {quote_identifier(table)}{where} GROUP BY 1"
+        rows = rows_as_dicts(conn.execute(sql, params))
+        if ano is not None and not rows:
+            raise HTTPException(status_code=404, detail="Ano não encontrado.")
+
+        total_veiculos = sum(r["veiculos_envolvidos"] or 0 for r in rows)
+        total_mortes = sum(r["mortes"] or 0 for r in rows) if deaths_col else None
+        items = []
+        for r in rows:
+            n = _number(r["veiculos_envolvidos"]) or 0
+            if n < min_veiculos:
+                continue
+            mortes = _number(r["mortes"])
+            feridos_graves = _number(r["feridos_graves"])
+            age = r["idade_media_veiculo"]
+            items.append(
+                {
+                    "tipo_veiculo": r["tipo_veiculo"],
+                    "veiculos_envolvidos": n,
+                    "acidentes": _number(r["acidentes"]),
+                    "ocupantes": _number(r["ocupantes"]),
+                    "mortes": mortes,
+                    "feridos_graves": feridos_graves,
+                    "feridos_leves": _number(r["feridos_leves"]),
+                    "ilesos": _number(r["ilesos"]),
+                    "pct_dos_veiculos": _rate(n, total_veiculos),
+                    "pct_das_mortes": _rate(mortes, total_mortes),
+                    "mortes_por_100_veiculos": _rate(mortes, n),
+                    "feridos_graves_por_100_veiculos": _rate(feridos_graves, n),
+                    "idade_media_veiculo": None if age is None else round(age, 1),
+                }
+            )
+        sort_key = "veiculos_envolvidos" if ordenar_por == "veiculos" else ordenar_por
+        items.sort(key=lambda i: (-(i[sort_key] or 0), -i["veiculos_envolvidos"], i["tipo_veiculo"]))
+
+        return {
+            "count": min(len(items), limit),
+            "filters": {
+                "ano": ano,
+                "ordenar_por": ordenar_por,
+                "min_veiculos": min_veiculos,
+                "limit": limit,
+            },
+            "total_veiculos": total_veiculos,
+            "total_mortes": total_mortes,
+            "aviso": (
+                "Veículos envolvidos em acidentes registrados pela PRF em rodovias federais. Não é risco "
+                "por tipo de veículo: sem o tamanho da frota nem os km rodados, um tipo pode aparecer "
+                "mais só por circular mais. Mortes e feridos são contados por veículo, entre os seus "
+                "ocupantes; por isso total_mortes fica abaixo do total de /rodovias, que conta todas as "
+                "vítimas do acidente. Um acidente com dois tipos de veículo entra em 'acidentes' dos "
+                "dois; não some essa coluna. Tipos com poucos veículos têm taxas instáveis. Não indica "
+                "causalidade."
+            ),
+            "data": items[:limit],
+        }
+    finally:
+        conn.close()
+
+
+@router.get(
+    "/analises/regioes",
+    tags=["analises"],
+    summary="Compara as regiões do Ceará (IBGE) por acidentes e por taxas a cada 100 mil habitantes",
+)
+def regioes(
+    nivel: Annotated[
+        Literal["intermediaria", "imediata"],
+        Query(description="Divisão regional do IBGE: 6 regiões intermediárias ou 18 imediatas."),
+    ] = "intermediaria",
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Ano de referência (ex.: 2024, 2025 ou 2026 parcial)."),
+    ] = None,
+    ordenar_por: Annotated[
+        Literal[
+            "acidentes",
+            "mortes",
+            "feridos_graves",
+            "acidentes_por_100k",
+            "mortes_por_100k",
+            "feridos_graves_por_100k",
+        ],
+        Query(description="Indicador usado na ordenação decrescente."),
+    ] = "acidentes",
+    limit: Annotated[int, Query(ge=1, le=50, description="Quantidade máxima de regiões (1 a 50).")] = 20,
+) -> dict:
+    conn = connect()
+    try:
+        table = _ensure_table(conn, "municipal")
+        region_col = resolve_column(conn, table, REGION_LEVELS[nivel])
+        if region_col is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Nível '{nivel}' indisponível: a mart municipal publicada não tem coluna de região "
+                    f"(aceitas: {', '.join(REGION_LEVELS[nivel])})."
+                ),
+            )
+        name_col = resolve_column(conn, table, MUNICIPALITY_COLS, required=True)
+        acc_col = resolve_column(conn, table, ACCIDENTS_COLS, required=True)
+        deaths_col = resolve_column(conn, table, DEATHS_COLS)
+        serious_col = resolve_column(conn, table, SERIOUS_COLS)
+        pop_col = resolve_column(conn, table, POPULATION_COLS)
+        needs_column = {
+            "mortes": deaths_col,
+            "mortes_por_100k": deaths_col,
+            "feridos_graves": serious_col,
+            "feridos_graves_por_100k": serious_col,
+        }
+        if ordenar_por.endswith("_por_100k") and pop_col is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Ordenação '{ordenar_por}' indisponível: a mart municipal publicada não tem "
+                    f"coluna de população (aceitas: {', '.join(POPULATION_COLS)})."
+                ),
+            )
+        if ordenar_por in needs_column and needs_column[ordenar_por] is None:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Ordenação '{ordenar_por}' indisponível nesta versão do banco exportado.",
+            )
+
+        region = _category_sql(region_col)
+        name = quote_identifier(name_col)
+        acc = quote_identifier(acc_col)
+        where, params = _year_where(conn, table, ano)
+        base = quote_identifier(table)
+        select = [
+            f"{region} AS regiao",
+            f"COUNT(DISTINCT {name}) AS municipios",
+            f"SUM({acc}) AS acidentes",
+            f"{_sum_sql(deaths_col)} AS mortes",
+            f"{_sum_sql(serious_col)} AS feridos_graves",
+            f"{_sum_sql(pop_col)} AS populacao_somada",
+        ]
+        rows = rows_as_dicts(
+            conn.execute(f"SELECT {', '.join(select)} FROM {base}{where} GROUP BY 1", params)
+        )
+        if ano is not None and not rows:
+            raise HTTPException(status_code=404, detail="Ano não encontrado.")
+
+        # Município com mais acidentes em cada região (soma dos anos pedidos).
+        top_rows = rows_as_dicts(
+            conn.execute(
+                f"""
+                SELECT regiao, municipio, acidentes FROM (
+                    SELECT {region} AS regiao, {name} AS municipio, SUM({acc}) AS acidentes,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY {region} ORDER BY SUM({acc}) DESC, {name}
+                           ) AS pos
+                    FROM {base}{where} GROUP BY 1, 2
+                ) WHERE pos = 1
+                """,
+                params,
+            )
+        )
+        top = {t["regiao"]: t for t in top_rows}
+
+        total_acidentes = sum(r["acidentes"] or 0 for r in rows)
+        total_mortes = sum(r["mortes"] or 0 for r in rows) if deaths_col else None
+        items = []
+        for r in rows:
+            acidentes = _number(r["acidentes"]) or 0
+            mortes = _number(r["mortes"])
+            graves = _number(r["feridos_graves"])
+            pop = _number(r["populacao_somada"]) if pop_col else None
+            maior = top.get(r["regiao"])
+            items.append(
+                {
+                    "regiao": r["regiao"],
+                    "municipios": r["municipios"],
+                    "acidentes": acidentes,
+                    "mortes": mortes,
+                    "feridos_graves": graves,
+                    "pct_dos_acidentes": _rate(acidentes, total_acidentes),
+                    "pct_das_mortes": _rate(mortes, total_mortes),
+                    "mortes_por_100_acidentes": _rate(mortes, acidentes),
+                    "acidentes_por_100k": None if not pop else round(acidentes * 100000 / pop, 2),
+                    "mortes_por_100k": (
+                        None if not pop or mortes is None else round(mortes * 100000 / pop, 2)
+                    ),
+                    "feridos_graves_por_100k": (
+                        None if not pop or graves is None else round(graves * 100000 / pop, 2)
+                    ),
+                    "municipio_com_mais_acidentes": (
+                        {"municipio": maior["municipio"], "acidentes": _number(maior["acidentes"])}
+                        if maior
+                        else None
+                    ),
+                }
+            )
+        items.sort(key=lambda i: (-(i[ordenar_por] or 0), -i["acidentes"], i["regiao"]))
+
+        return {
+            "count": min(len(items), limit),
+            "filters": {"nivel": nivel, "ano": ano, "ordenar_por": ordenar_por, "limit": limit},
+            "total_acidentes": total_acidentes,
+            "total_mortes": total_mortes,
+            "aviso": (
+                "Soma, por região do IBGE, os acidentes registrados pela PRF em rodovias federais nos "
+                "municípios de cada região; estradas estaduais e municipais não entram. As taxas usam a "
+                "população do IBGE: com vários anos somados, são a média anual por 100 mil habitantes, "
+                "e 2026 é parcial (até 31/08/2026), o que puxa a taxa para baixo; para comparar, use "
+                "'ano' com um ano fechado. Regiões com mais rodovias federais registram mais acidentes "
+                "sem que isso diga que a população local dirige pior. Não indica causalidade."
+            ),
+            "data": items[:limit],
         }
     finally:
         conn.close()

@@ -2,7 +2,26 @@
 
 > Regra: registrar fatos reais na semana em que ocorrerem. Não reconstruir retroativamente atividades que não estão sustentadas por commit, mensagem, reunião ou arquivo.
 
-### Semana de 18/09
+## Índice das semanas
+
+| Semana | Data | Destaque |
+| --- | --- | --- |
+| [1](#semana-1--18092026) | 18/09/2026 | Primeira reunião e criação do repositório |
+| [2](#semana-2--25092026) | 25/09/2026 | Instrumentos-modelo e organização das branches |
+| [3](#semana-3--02102026) | 02/10/2026 | Rota `/analises/perfil-rodovia` |
+| [4](#semana-4--09102026) | 09/10/2026 | API no ar no Render e rota `/analises/circunstancias` |
+| [5](#semana-5--16102026) | 16/10/2026 | Novas rotas de análise e formulário de pesquisa |
+| [6](#semana-6--23102026) | 23/10/2026 | 1º teste externo |
+| [7](#semana-7--30102026) | 30/10/2026 | Convites diretos a testadores |
+| [8](#semana-8--06112026) | 06/11/2026 | 2º teste externo |
+| [9](#semana-9--13112026) | 13/11/2026 | **Marco 2**, 3º teste externo |
+| [10](#semana-10--20112026) | 20/11/2026 | Melhoria do `/docs` e rota `/analises/regioes` |
+| [11](#semana-11--27112026) | 27/11/2026 | **Marco 3** |
+| [12](#semana-12--04122026) | 04/12/2026 | **Socialização** |
+
+---
+
+## Semana 1 — 18/09/2026
 
 **Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 1h; Victor Cavalcante Pena — 1h; Felipe dos Reis Pena — 1h; Eduardo Rodrigues Bezerra Loiola — 1h; Jorge Leão Salgado Neto — 1h
 
@@ -10,6 +29,7 @@
 
 - Realizamos a primeira reunião da equipe para discutir a proposta do projeto, alinhar as ideias iniciais e definir como seria o desenvolvimento do trabalho.
 - Criamos e organizamos o repositório do projeto no GitHub e estruturamos o Diário de Bordo para registrar as atividades, evidências e horas de trabalho da equipe.
+- **Felipe:** pesquisas para implementação de novas rotas, identificando que as tabelas de clima e tipo de veículo já existiam no banco de dados, mas ainda não eram utilizadas por nenhuma rota. Criação da rota `/api/v1/analises/veiculos`.
 
 **Obstáculo:** Nenhum obstáculo relevante. A reunião foi utilizada principalmente para o planejamento inicial e a organização da equipe.
 
@@ -21,14 +41,15 @@
 
 ---
 
-### Semana de 25/09
+## Semana 2 — 25/09/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
 - Upload dos instrumentos-modelo da disciplina para o repositório e revisão inicial da estrutura do diário de bordo para uso da equipe (commits `3ea102a` e `e6751ab`).
 - Organização das branches e alinhamento inicial do fluxo de versionamento no GitHub.
+- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/clima`.
 
 **Obstáculo:** Dificuldade inicial em fechar qual recorte da plataforma principal de segurança viária seria exposto sem depender de todo o pipeline pesado de ETL.
 
@@ -40,41 +61,49 @@
 
 ---
 
-### Semana de 07/10
+## Semana 3 — 02/10/2026
 
-
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Victor Cavalcante Pena — 4h; Felipe dos Reis Pena — 2h; Eduardo Rodrigues Bezerra Loiola — 1h; Jorge Leão Salgado Neto — 1h
-
-> Preencher e commitar no fim da semana. Abaixo está o checklist de atividades desta etapa; marque somente o que realmente ocorreu e registre as horas reais.
-
-**Quem trabalhou e quanto:** [Ayuri de Souza dos Reis — 1h; Victor Cavalcante Pena — 1h; Felipe dos Reis Pena — 1h; Eduardo Rodrigues Bezerra Loiola — 1h; Jorge Leão Salgado Neto — 1h]
-
+**Quem trabalhou e quanto:** Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
-- [x] Redefinimos o escopo para uma API pública independente do dashboard, reutilizando a camada Gold da plataforma de segurança viária.
-- [x] Integramos o scaffold FastAPI ao repositório da disciplina (`app/main.py`, `app/routes.py`, `app/db.py`).
-- [x] Geramos um DuckDB compacto com `scripts/export_gold.py` e publicamos na release `data-2026-08-v1`.
-- [x] Executamos a suíte `pytest -q` e configuramos o GitHub Actions (`.github/workflows/ci.yml`).
-- [x] Revisamos `plano-de-acao.md`, `README.md` e distribuímos os papéis (Ayuri responsável por documentação, clareza do `/docs` e revisão do teste do estranho).
-- [x] Publicamos o endereço público no Render (`https://api-seguranca-viaria-ce.onrender.com`) e definimos perfis externos para os testes.
+- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/perfil-rodovia`.
 
+**Obstáculo:** Sem registro nesta semana.
+
+**Contato com o público:** Sem registro nesta semana.
+
+**Evidência coletada:** Rota `/api/v1/analises/perfil-rodovia` e seus testes em `tests/test_api.py`.
+
+**Próxima semana:** Sem registro nesta semana.
+
+---
+
+## Semana 4 — 09/10/2026
+
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Victor Cavalcante Pena — 4h; Felipe dos Reis Pena — 2h; Eduardo Rodrigues Bezerra Loiola — 1h; Jorge Leão Salgado Neto — 1h
+
+**O que foi feito:**
+
+- Redefinimos o escopo para uma API pública independente do dashboard, reutilizando a camada Gold da plataforma de segurança viária.
+- Integramos o scaffold FastAPI ao repositório da disciplina (`app/main.py`, `app/routes.py`, `app/db.py`).
+- Geramos um DuckDB compacto com `scripts/export_gold.py` e publicamos na release `data-2026-08-v1`.
+- Executamos a suíte `pytest -q` e configuramos o GitHub Actions (`.github/workflows/ci.yml`).
+- Revisamos `plano-de-acao.md`, `README.md` e distribuímos os papéis (Ayuri responsável por documentação, clareza do `/docs` e revisão do teste do estranho).
+- Publicamos o endereço público no Render (`https://api-seguranca-viaria-ce.onrender.com`) e definimos perfis externos para os testes.
+- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/circunstancias`.
 
 **Obstáculo:** Entendimento inicial do fluxo de empacotamento do DuckDB para a nuvem gratuita sem acoplar o ETL completo da plataforma principal.
-
-
 
 **Contato com o público:** Ainda não houve teste externo executado nesta semana; foi feita a preparação do roteiro em `docs/ROTEIRO-TESTE-EXTERNO.md`.
 
 **Evidência coletada:** Commits `bf5ef69`, `aeb7509`, `dbe5e39`, `9b42f54`, `f39c0f3`, `4bbdf89` e tag `data-2026-08-v1`.
 
-
 **Próxima semana:** Expandir as rotas analíticas, preparar formulário/convites para usuários externos e iniciar a coleta de logs de acesso.
-
 
 ---
 
-### Semana de 14/10
+## Semana 5 — 16/10/2026
 
 **Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h; Felipe dos Reis Pena — 4h; Eduardo Rodrigues Bezerra Loiola — 3h; Jorge Leão Salgado Neto — 2h
 
@@ -83,6 +112,7 @@
 - Implementação e revisão das novas rotas de análise: `/api/v1/municipios/risco-per-capita`, `/api/v1/analises/circunstancias` e `/api/v1/analises/perfil-rodovia` (commits `54f61e7` a `a1c862c`), além de `/api/v1/analises/evolucao` e `/api/v1/analises/quando-acontece` (commit `eb03506`).
 - Registro de acessos também na saída padrão (`ACESSO ...`) para leitura nos logs do Render (commit `256a6ca`).
 - Criação de formulário de pesquisa técnica para avaliação por usuários externos e revisão da documentação das novas rotas no `README.md` (organização e revisão conduzidas com apoio de Ayuri).
+- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/municipios/risco-per-capita`.
 
 **Obstáculo:** O armazenamento local do Render gratuito é efêmero a cada reinício; por isso o middleware passou a gravar também linhas estruturadas `ACESSO` no stdout do serviço.
 
@@ -94,7 +124,7 @@
 
 ---
 
-### Semana de 21/10
+## Semana 6 — 23/10/2026
 
 **Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Felipe dos Reis Pena — 2h
 
@@ -114,14 +144,15 @@
 
 ---
 
-### Semana de 28/10
+## Semana 7 — 30/10/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
 - Acompanhamento da disponibilidade da URL pública (`https://api-seguranca-viaria-ce.onrender.com/health`) e verificação das consultas registradas nos endpoints de municípios, rodovias e trechos críticos.
 - Revisão dos textos de limitações dos dados no `README.md` (recorte restrito a rodovias federais da PRF, instabilidade de taxas per capita em municípios pequenos e ano de 2026 parcial até 31/08/2026).
+- **Felipe:** pesquisas para implementação de novas rotas, identificando oportunidades de utilização das tabelas de clima e tipo de veículo já existentes no banco de dados.
 
 **Obstáculo:** Baixa adesão espontânea por formulário aberto sem convite individual; decidimos abordar diretamente perfis específicos do público-alvo (comunicação/jornalismo e desenvolvimento web) para observar o uso real.
 
@@ -133,14 +164,15 @@
 
 ---
 
-### Semana de 04/11
+## Semana 8 — 06/11/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Jorge Leão Salgado Neto — 1h
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Jorge Leão Salgado Neto — 1h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
 - Realização e registro do segundo teste com público externo em 06/11 (`evidencias/2026-11-06-teste-externo-02.md`), com estudante de comunicação/jornalismo interessado em dados de mobilidade.
 - Mapeamento do obstáculo de *cold start* da instância gratuita do Render (cerca de 35 segundos na primeira requisição após inatividade) e dúvida sobre a comparação do ano parcial de 2026.
+- **Felipe:** criação da rota `/api/v1/analises/clima`.
 
 **Obstáculo:** O tempo de despertar (*cold start*) do plano gratuito do Render fez a pessoa testadora achar inicialmente que o link estava fora do ar no primeiro clique.
 
@@ -152,15 +184,18 @@
 
 ---
 
-### Semana de 11/11 — Marco 2 em 13/11
+## Semana 9 — 13/11/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h
+> Entrega do **Marco 2**.
+
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
 - Condução do terceiro teste externo sem orientação em 12/11 com desenvolvedor web externo (`evidencias/2026-11-12-teste-externo-03.md`).
 - Extração e consolidação das linhas de acesso da API com `scripts/summarize_access.py`, totalizando 41 consultas úteis bem-sucedidas (`evidencias/2026-11-12-logs-render.txt` e `evidencias/2026-11-12-resumo-acessos.md`).
 - Conferência das rotas públicas no ar (`https://api-seguranca-viaria-ce.onrender.com/docs` e `/health`).
+- **Felipe:** criação da rota `/api/v1/analises/veiculos`.
 
 **Obstáculo:** As atualizações documentais do Marco 2, a consolidação do `evidencias.csv` e o preenchimento do `marco-2.md` não haviam sido enviados para a branch `main` antes da verificação assíncrona do professor (que ocorreu sem encontro presencial na sexta-feira).
 
@@ -172,15 +207,16 @@
 
 ---
 
-### Semana de 18/11
+## Semana 10 — 20/11/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 4h
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 4h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
 - Melhoria direta na clareza da documentação interativa `/docs` (`app/main.py` e `app/routes.py`), atendendo às dificuldades reais registradas nos testes externos: inclusão do guia **"Como começar sem ajuda"** no topo do Swagger, organização das rotas em `openapi_tags` (`meta`, `consultas`, `analises`) e adição de descrições e exemplos explícitos em todos os parâmetros (`ibge_code=2304400`, `rodovia` aceitando `116` ou `BR-116`, alerta de recorte parcial de `2026`).
 - Adição de testes automatizados em `tests/test_api.py` para garantir que o schema `/openapi.json` mantenha as tags, instruções iniciais e descrições de parâmetros (`94 passed`).
 - Preenchimento completo do `marco-2.md`, atualização do `evidencias.csv`, revisão do `docs/CHECKLIST-MARCO-2.md` e consolidação deste `diario-de-bordo.md` na branch `main`.
+- **Felipe:** criação da rota `/api/v1/analises/regioes`, que compara as regiões do Ceará (divisão do IBGE, em 6 regiões intermediárias ou 18 imediatas) por acidentes, mortes e feridos graves, em números absolutos e a cada 100 mil habitantes. Cada região traz também o município com mais acidentes. A rota aproveita as colunas de região da tabela municipal, que nenhuma rota usava até então, e aceita filtro por ano, escolha do nível, ordenação por seis indicadores e limite de resultados. Também foram escritos os testes automatizados da rota e a seção correspondente no `README.md`.
 
 **Obstáculo:** Sincronização desigual de entregas entre integrantes da equipe; para não comprometer o registro do projeto e da etapa de documentação/experiência de uso, toda a frente de documentação, `/docs`, testes externos, evidências e ficha do Marco 2 foi consolidada e subida diretamente na `main`.
 
@@ -192,7 +228,9 @@
 
 ---
 
-### Semana de 25/11 — Marco 3 em 27/11
+## Semana 11 — 27/11/2026
+
+> Entrega do **Marco 3**.
 
 **Quem trabalhou e quanto:** [PREENCHER NA SEMANA]
 
@@ -208,7 +246,9 @@
 
 ---
 
-### Semana de 02/12 — Socialização em 04/12
+## Semana 12 — 04/12/2026
+
+> **Socialização**.
 
 **Quem trabalhou e quanto:** [PREENCHER NA SEMANA]
 

@@ -879,6 +879,224 @@ def test_analises_de_tempo_devolvem_sempre_a_mesma_resposta(client_tempo: TestCl
         assert client_tempo.get(url).json() == client_tempo.get(url).json()
 
 
+# ---------- clima (Open-Meteo) e tipos de veículo ----------
+
+@pytest.fixture()
+def client_clima_veiculos(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    return _client_tables(tmp_path, monkeypatch, {
+        "mart_weather_road_safety_pt": """
+            SELECT * FROM (VALUES
+                (2025, 'clear', 'Céu limpo', FALSE, 100, 10, 20, 8, 28.0, 0.0),
+                (2025, 'rain', 'Chuva', TRUE, 20, 4, 5, 3, 24.0, 3.0),
+                (2025, 'drizzle', 'Garoa', TRUE, 30, 2, 6, 2, 26.0, 0.2),
+                (2026, 'clear', 'Céu limpo', FALSE, 50, 8, 9, 7, 27.0, 0.0),
+                (2026, 'thunderstorm', 'Tempestade', TRUE, 2, 0, 1, 0, NULL, 6.0)
+            ) t(year, weather_group, weather_group_label, is_precipitating, accidents, deaths,
+                serious_injuries, fatal_accidents, avg_temperature, avg_precipitation_mm)
+        """,
+        "mart_vehicle_road_safety": """
+            SELECT * FROM (VALUES
+                (2025, 'Motocicleta', 100, 90, 130, 10, 30, 50, 5, 9.0),
+                (2025, 'Automóvel', 200, 150, 300, 4, 10, 60, 220, 11.0),
+                (2025, 'Bicicleta', 10, 10, 10, 3, 2, 4, 0, NULL),
+                (2026, 'Motocicleta', 50, 45, 60, 8, 12, 20, 2, 12.0),
+                (2026, 'Automóvel', 100, 80, 150, 2, 6, 30, 100, 11.0)
+            ) t(year, vehicle_type, vehicles_involved, accidents, occupants, deaths, serious_injuries,
+                minor_injuries, uninjured, avg_vehicle_age)
+        """,
+    })
+
+
+def test_clima_soma_os_anos_e_pondera_as_medias(client_clima_veiculos: TestClient):
+    body = client_clima_veiculos.get("/api/v1/analises/clima").json()
+    assert (body["total_acidentes"], body["total_mortes"], body["count"]) == (202, 24, 4)
+    assert body["dimensoes_indisponiveis"] == []
+    assert [g["categoria"] for g in body["data"]] == ["Céu limpo", "Garoa", "Chuva", "Tempestade"]
+    assert body["data"][0] == {
+        "categoria": "Céu limpo",
+        "codigo": "clear",
+        "com_precipitacao": False,
+        "acidentes": 150,
+        "mortes": 18,
+        "feridos_graves": 29,
+        "acidentes_fatais": 15,
+        "pct_dos_acidentes": 74.26,
+        "mortes_por_100_acidentes": 12.0,
+        "pct_acidentes_fatais": 10.0,
+        # (100 × 28 + 50 × 27) / 150: média ponderada pelos acidentes, não a média simples 27,5
+        "medias": {"temperatura_c": 27.67, "precipitacao_mm": 0.0},
+    }
+
+
+def test_clima_resume_com_e_sem_precipitacao(client_clima_veiculos: TestClient):
+    sem, com = client_clima_veiculos.get("/api/v1/analises/clima").json()["por_precipitacao"]
+    assert (sem["categoria"], sem["acidentes"], sem["mortes_por_100_acidentes"]) == ("Sem precipitação", 150, 12.0)
+    assert (com["categoria"], com["com_precipitacao"], com["acidentes"], com["mortes"]) == (
+        "Com precipitação", True, 52, 6,
+    )
+    assert (com["pct_dos_acidentes"], com["mortes_por_100_acidentes"], com["pct_acidentes_fatais"]) == (
+        25.74, 11.54, 9.62,
+    )
+    # A tempestade não tem temperatura medida: fica fora da média em vez de puxá-la para baixo.
+    assert com["medias"] == {"temperatura_c": 25.2, "precipitacao_mm": 1.5}
+    assert sem["acidentes"] + com["acidentes"] == 202
+
+
+def test_clima_media_ausente_vem_nula(client_clima_veiculos: TestClient):
+    data = client_clima_veiculos.get("/api/v1/analises/clima").json()["data"]
+    tempestade = next(g for g in data if g["categoria"] == "Tempestade")
+    assert tempestade["medias"] == {"temperatura_c": None, "precipitacao_mm": 6.0}
+    assert tempestade["mortes_por_100_acidentes"] == 0.0
+
+
+def test_clima_filtro_ano_e_404(client_clima_veiculos: TestClient):
+    body = client_clima_veiculos.get("/api/v1/analises/clima?ano=2025").json()
+    assert (body["total_acidentes"], body["count"]) == (150, 3)
+    assert body["data"][0]["pct_dos_acidentes"] == 66.67
+    assert client_clima_veiculos.get("/api/v1/analises/clima?ano=2031").status_code == 404
+
+
+def test_clima_ordenacao_e_min_acidentes(client_clima_veiculos: TestClient):
+    get = client_clima_veiculos.get
+    por_taxa = get("/api/v1/analises/clima?ordenar_por=mortes_por_100_acidentes").json()["data"]
+    assert [(g["categoria"], g["mortes_por_100_acidentes"]) for g in por_taxa] == [
+        ("Chuva", 20.0), ("Céu limpo", 12.0), ("Garoa", 6.67), ("Tempestade", 0.0),
+    ]
+    por_mortes = get("/api/v1/analises/clima?ordenar_por=mortes").json()["data"]
+    assert [g["categoria"] for g in por_mortes][:3] == ["Céu limpo", "Chuva", "Garoa"]
+    minimo = get("/api/v1/analises/clima?ordenar_por=mortes_por_100_acidentes&min_acidentes=25").json()
+    assert [g["categoria"] for g in minimo["data"]] == ["Céu limpo", "Garoa"]
+    # min_acidentes tira categorias da lista, mas não dos totais nem do resumo de precipitação.
+    assert minimo["total_acidentes"] == 202 and minimo["por_precipitacao"][1]["acidentes"] == 52
+
+
+def test_clima_sem_colunas_opcionais(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    c = _client_tables(tmp_path, monkeypatch, {
+        "mart_weather_road_safety_pt": """
+            SELECT * FROM (VALUES (2025, 'Chuva', 20), (2025, NULL, 5)) t(year, weather_group, accidents)
+        """,
+    })
+    body = c.get("/api/v1/analises/clima").json()
+    assert body["dimensoes_indisponiveis"] == ["precipitacao"] and body["por_precipitacao"] == []
+    assert body["total_mortes"] is None
+    assert body["data"] == [
+        {
+            "categoria": "Chuva", "acidentes": 20, "mortes": None, "feridos_graves": None,
+            "acidentes_fatais": None, "pct_dos_acidentes": 80.0, "mortes_por_100_acidentes": None,
+            "pct_acidentes_fatais": None, "medias": {},
+        },
+        {
+            "categoria": "Não informado", "acidentes": 5, "mortes": None, "feridos_graves": None,
+            "acidentes_fatais": None, "pct_dos_acidentes": 20.0, "mortes_por_100_acidentes": None,
+            "pct_acidentes_fatais": None, "medias": {},
+        },
+    ]
+    assert c.get("/api/v1/analises/clima?ordenar_por=mortes").status_code == 503
+
+
+def test_veiculos_soma_os_anos_e_ordena_por_veiculos(client_clima_veiculos: TestClient):
+    body = client_clima_veiculos.get("/api/v1/analises/veiculos").json()
+    assert (body["total_veiculos"], body["total_mortes"], body["count"]) == (460, 27, 3)
+    assert [i["tipo_veiculo"] for i in body["data"]] == ["Automóvel", "Motocicleta", "Bicicleta"]
+    assert body["data"][1] == {
+        "tipo_veiculo": "Motocicleta",
+        "veiculos_envolvidos": 150,
+        "acidentes": 135,
+        "ocupantes": 190,
+        "mortes": 18,
+        "feridos_graves": 42,
+        "feridos_leves": 70,
+        "ilesos": 7,
+        "pct_dos_veiculos": 32.61,
+        "pct_das_mortes": 66.67,
+        "mortes_por_100_veiculos": 12.0,
+        "feridos_graves_por_100_veiculos": 28.0,
+        # (100 × 9 + 50 × 12) / 150
+        "idade_media_veiculo": 10.0,
+    }
+    bicicleta = body["data"][2]
+    assert bicicleta["idade_media_veiculo"] is None and bicicleta["mortes_por_100_veiculos"] == 30.0
+
+
+def test_veiculos_ordenacoes_e_min_veiculos(client_clima_veiculos: TestClient):
+    def ordem(query: str) -> list[str]:
+        return [i["tipo_veiculo"] for i in client_clima_veiculos.get(f"/api/v1/analises/veiculos?{query}").json()["data"]]
+
+    assert ordem("ordenar_por=mortes") == ["Motocicleta", "Automóvel", "Bicicleta"]
+    assert ordem("ordenar_por=mortes_por_100_veiculos") == ["Bicicleta", "Motocicleta", "Automóvel"]
+    assert ordem("ordenar_por=feridos_graves_por_100_veiculos") == ["Motocicleta", "Bicicleta", "Automóvel"]
+    assert ordem("ordenar_por=feridos_graves") == ["Motocicleta", "Automóvel", "Bicicleta"]
+    # Com poucos veículos a taxa da bicicleta é instável; min_veiculos tira ela do ranking.
+    assert ordem("ordenar_por=mortes_por_100_veiculos&min_veiculos=50") == ["Motocicleta", "Automóvel"]
+
+
+def test_veiculos_filtro_ano_limit_e_404(client_clima_veiculos: TestClient):
+    body = client_clima_veiculos.get("/api/v1/analises/veiculos?ano=2026").json()
+    assert (body["total_veiculos"], body["total_mortes"], body["count"]) == (150, 10, 2)
+    assert body["data"][0]["pct_das_mortes"] == 20.0
+    um = client_clima_veiculos.get("/api/v1/analises/veiculos?limit=1").json()
+    assert um["count"] == 1 and um["total_veiculos"] == 460
+    assert client_clima_veiculos.get("/api/v1/analises/veiculos?ano=2031").status_code == 404
+
+
+def test_veiculos_sem_coluna_de_mortes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    c = _client_tables(tmp_path, monkeypatch, {
+        "mart_vehicle_road_safety": """
+            SELECT * FROM (VALUES (2025, 'Automóvel', 200), (2025, 'Motocicleta', 100))
+            t(year, vehicle_type, vehicles_involved)
+        """,
+    })
+    assert c.get("/api/v1/analises/veiculos?ordenar_por=mortes").status_code == 503
+    assert c.get("/api/v1/analises/veiculos?ordenar_por=feridos_graves_por_100_veiculos").status_code == 503
+    body = c.get("/api/v1/analises/veiculos").json()
+    assert body["total_mortes"] is None
+    assert body["data"][0]["tipo_veiculo"] == "Automóvel"
+    assert body["data"][0]["mortes"] is None and body["data"][0]["pct_das_mortes"] is None
+
+
+def test_veiculos_sem_coluna_do_tipo_retorna_500_explicando(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    c = _client_tables(tmp_path, monkeypatch, {
+        "mart_vehicle_road_safety": "SELECT 2025 AS year, 10 AS vehicles_involved",
+    })
+    response = c.get("/api/v1/analises/veiculos")
+    assert response.status_code == 500
+    assert response.json()["detail"]["error"] == "schema_incompativel"
+
+
+@pytest.mark.parametrize("url", [
+    "/api/v1/analises/clima?ordenar_por=chuva",
+    "/api/v1/analises/clima?min_acidentes=0",
+    "/api/v1/analises/clima?ano=1999",
+    "/api/v1/analises/veiculos?ordenar_por=frota",
+    "/api/v1/analises/veiculos?min_veiculos=0",
+    "/api/v1/analises/veiculos?limit=51",
+    "/api/v1/analises/veiculos?ano=abc",
+])
+def test_clima_e_veiculos_parametro_invalido_retorna_422(client_clima_veiculos: TestClient, url: str):
+    assert client_clima_veiculos.get(url).status_code == 422
+
+
+def test_clima_e_veiculos_sem_a_tabela_retornam_503(client: TestClient):
+    clima = client.get("/api/v1/analises/clima")
+    assert clima.status_code == 503 and "mart_weather_road_safety_pt" in clima.json()["detail"]
+    veiculos = client.get("/api/v1/analises/veiculos")
+    assert veiculos.status_code == 503 and "mart_vehicle_road_safety" in veiculos.json()["detail"]
+
+
+def test_clima_e_veiculos_com_banco_ausente_retornam_503(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROAD_SAFETY_DB_PATH", str(tmp_path / "nao-existe.duckdb"))
+    monkeypatch.setenv("ACCESS_LOG_PATH", str(tmp_path / "access.csv"))
+    from app.main import app
+    c = TestClient(app)
+    assert c.get("/api/v1/analises/clima").status_code == 503
+    assert c.get("/api/v1/analises/veiculos").status_code == 503
+
+
+def test_clima_e_veiculos_devolvem_sempre_a_mesma_resposta(client_clima_veiculos: TestClient):
+    for url in ("/api/v1/analises/clima", "/api/v1/analises/veiculos"):
+        assert client_clima_veiculos.get(url).json() == client_clima_veiculos.get(url).json()
+
+
 def test_openapi_docs_incluem_tags_e_orientacoes_de_uso(client: TestClient):
     schema = client.get("/openapi.json").json()
     tag_names = [t["name"] for t in schema.get("tags", [])]
@@ -906,3 +1124,95 @@ def test_openapi_parametros_documentam_codigo_ibge_e_formato_rodovia(client: Tes
     comparar_param = next(p for p in evolucao_get["parameters"] if p["name"] == "comparar")
     assert "mesmo_periodo" in comparar_param["description"]
 
+
+# ---------- regiões do IBGE ----------
+
+@pytest.fixture()
+def client_regioes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    return _client_tables(tmp_path, monkeypatch, {
+        "mart_municipality_road_safety_yearly": """
+            SELECT * FROM (VALUES
+                (2025, 'Fortaleza', 'Fortaleza', 'Fortaleza', 100, 10, 40, 1000000),
+                (2026, 'Fortaleza', 'Fortaleza', 'Fortaleza', 50, 6, 20, 1000000),
+                (2025, 'Caucaia', 'Fortaleza', 'Fortaleza', 30, 3, 10, 200000),
+                (2025, 'Sobral', 'Sobral', 'Sobral', 20, 8, 9, 100000),
+                (2026, 'Sobral', 'Sobral', 'Sobral', 10, 2, 4, 100000),
+                (2025, 'Ipu', 'Sobral', 'Ipu - Guaraciaba', 5, NULL, 1, 40000)
+            ) t(year, municipality, intermediate_region, immediate_region, accidents, deaths,
+                serious_injuries, population)
+        """,
+    })
+
+
+def test_regioes_soma_os_anos_e_calcula_taxas(client_regioes: TestClient):
+    body = client_regioes.get("/api/v1/analises/regioes").json()
+    assert (body["total_acidentes"], body["total_mortes"], body["count"]) == (215, 29, 2)
+    assert [r["regiao"] for r in body["data"]] == ["Fortaleza", "Sobral"]
+    assert body["data"][0] == {
+        "regiao": "Fortaleza",
+        "municipios": 2,
+        "acidentes": 180,
+        "mortes": 19,
+        "feridos_graves": 70,
+        "pct_dos_acidentes": 83.72,
+        "pct_das_mortes": 65.52,
+        "mortes_por_100_acidentes": 10.56,
+        # 180 acidentes / (1.000.000 + 1.000.000 + 200.000) de população somada, por 100 mil
+        "acidentes_por_100k": 8.18,
+        "mortes_por_100k": 0.86,
+        "feridos_graves_por_100k": 3.18,
+        "municipio_com_mais_acidentes": {"municipio": "Fortaleza", "acidentes": 150},
+    }
+
+
+def test_regioes_nivel_imediata_e_filtro_ano(client_regioes: TestClient):
+    body = client_regioes.get("/api/v1/analises/regioes?nivel=imediata&ano=2025").json()
+    assert body["filters"]["nivel"] == "imediata"
+    assert [r["regiao"] for r in body["data"]] == ["Fortaleza", "Sobral", "Ipu - Guaraciaba"]
+    assert body["total_acidentes"] == 155
+    assert client_regioes.get("/api/v1/analises/regioes?ano=2031").status_code == 404
+
+
+def test_regioes_ordenacao_por_taxa_e_limit(client_regioes: TestClient):
+    get = client_regioes.get
+    por_taxa = get("/api/v1/analises/regioes?ordenar_por=mortes_por_100k").json()["data"]
+    # Sobral tem menos acidentes, mas muito menos habitantes: a taxa a coloca na frente.
+    assert [r["regiao"] for r in por_taxa] == ["Sobral", "Fortaleza"]
+    assert get("/api/v1/analises/regioes?limit=1").json()["count"] == 1
+    sem_mortes = get("/api/v1/analises/regioes?nivel=imediata&ano=2025&ordenar_por=mortes").json()["data"]
+    assert sem_mortes[-1]["regiao"] == "Ipu - Guaraciaba" and sem_mortes[-1]["mortes"] is None
+
+
+@pytest.mark.parametrize("url", [
+    "/api/v1/analises/regioes?nivel=estadual",
+    "/api/v1/analises/regioes?ordenar_por=chuva",
+    "/api/v1/analises/regioes?limit=0",
+    "/api/v1/analises/regioes?ano=abc",
+])
+def test_regioes_parametro_invalido_retorna_422(client_regioes: TestClient, url: str):
+    assert client_regioes.get(url).status_code == 422
+
+
+def test_regioes_sem_coluna_de_regiao_ou_populacao(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    c = _client_tables(tmp_path, monkeypatch, {
+        "mart_municipality_road_safety_yearly": """
+            SELECT * FROM (VALUES (2025, 'Fortaleza', 'Fortaleza', 10)) t(year, municipality, intermediate_region, accidents)
+        """,
+    })
+    assert c.get("/api/v1/analises/regioes?nivel=imediata").status_code == 503
+    assert c.get("/api/v1/analises/regioes?ordenar_por=mortes").status_code == 503
+    assert c.get("/api/v1/analises/regioes?ordenar_por=acidentes_por_100k").status_code == 503
+    body = c.get("/api/v1/analises/regioes").json()
+    assert body["total_mortes"] is None
+    assert body["data"][0]["acidentes_por_100k"] is None and body["data"][0]["mortes"] is None
+
+
+def test_regioes_sem_a_tabela_ou_sem_banco_retornam_503(client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    assert client.get("/api/v1/analises/regioes").status_code == 503
+    monkeypatch.setenv("ROAD_SAFETY_DB_PATH", str(tmp_path / "nao-existe.duckdb"))
+    assert client.get("/api/v1/analises/regioes").status_code == 503
+
+
+def test_regioes_devolvem_sempre_a_mesma_resposta(client_regioes: TestClient):
+    url = "/api/v1/analises/regioes?nivel=imediata"
+    assert client_regioes.get(url).json() == client_regioes.get(url).json()

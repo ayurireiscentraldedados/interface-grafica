@@ -19,7 +19,7 @@ O produto foi pensado principalmente para:
 - Os dados publicados são o pacote `data-2026-08-v1`: 2024 e 2025 completos, e 2026 parcial, até 31/08/2026.
 - A documentação interativa, onde dá para testar cada rota no navegador, fica em `/docs`, organizada nas seções `meta`, `consultas` e `analises`, com guia rápido de uso ("Como começar sem ajuda") e exemplos nos parâmetros (`ibge_code=2304400`, formato `116` ou `BR-116`).
 - Rotas no ar hoje: municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
-- Cinco rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo e o mapa de calor por dia da semana e horário. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
+- Sete rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo, o mapa de calor por dia da semana e horário, os acidentes por condição do tempo e os tipos de veículo envolvidos. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
 - Os testes automáticos rodam no GitHub a cada envio de código.
 - A API guarda só data e hora, método, caminho, status e tempo de cada consulta. Não guarda nome, e-mail nem IP.
 
@@ -197,6 +197,8 @@ O código deste repositório é disponibilizado sob **MIT License**. Veja `LICEN
 - O perfil por rodovia compara contagens observadas; sem dados de tráfego (veículos por dia, extensão percorrida) não mede risco por viagem nem por km rodado, e rodovias mais longas ou mais movimentadas acumulam mais ocorrências.
 - A variação percentual entre períodos mostra mudança na contagem de acidentes registrados, não mudança de risco. Em recortes pequenos (um município, uma rodovia, um mês), poucos casos já mudam muito o percentual. O ano parcial é comparado com o mesmo intervalo do ano anterior, e não com o ano inteiro.
 - O mapa de calor por dia da semana e horário mostra onde os acidentes se concentram, não onde é mais perigoso: sem dados de tráfego, não dá para saber se sexta à noite concentra mais acidentes por ter mais gente na estrada.
+- A análise por condição do tempo mostra em que tempo os acidentes registrados aconteceram, não se chuva é mais perigosa: faltam as horas e as viagens feitas com e sem chuva. A condição vem do Open-Meteo (estimativa para o horário e o local) e diverge bastante da anotada pelo policial: no banco publicado, o Open-Meteo aponta precipitação em 831 dos 3.559 acidentes (23%), e a PRF registra chuva ou garoa em 243 (7%).
+- Na análise por tipo de veículo, mortes e feridos são contados por veículo, entre os seus ocupantes. O total de mortes (386) fica abaixo do total da base (472); a diferença provavelmente são vítimas sem veículo associado, como pedestres, mas isso precisa ser confirmado na plataforma principal.
 - Associação entre clima, local, horário ou tipo de veículo e acidentes não implica causalidade.
 - Trechos com maior número observado de acidentes são concentrações históricas na base, não previsões de perigo futuro.
 - A API é somente leitura e não recebe registros de acidentes da população.
@@ -357,7 +359,7 @@ curl 'http://127.0.0.1:8000/api/v1/analises/perfil-rodovia?ano=2025&ordenar_por=
 
 Cada perfil traz `posicao`, `acidentes`, `mortes`, `feridos_graves`, `mortes_por_100_acidentes`, `pct_acidentes_fatais`, `predominantes` (a categoria mais frequente de `horario`, `clima` e `tipo_veiculo`), `distribuicoes` (as 3 categorias mais frequentes, com contagem e percentual) e `trechos_criticos` (`km_inicial`, `km_final`, `acidentes`, `mortes`).
 
-`pct_acidentes_fatais` e `distribuicoes` vêm das ocorrências mapeadas (`ocorrencias_mapeadas`), que podem divergir dos totais da tabela de rodovias. Dimensões ausentes no banco publicado são listadas em `dimensoes_indisponiveis` e omitidas do perfil. No banco publicado hoje, `tipo_veiculo` aparece como indisponível, porque a tabela de ocorrências não traz o tipo de veículo. Também existe uma "rodovia" chamada `0` (14 ocorrências), que parece ser registro sem rodovia identificada; confirme na plataforma antes de citá-la.
+`pct_acidentes_fatais` e `distribuicoes` vêm das ocorrências mapeadas (`ocorrencias_mapeadas`), que podem divergir dos totais da tabela de rodovias. Dimensões ausentes no banco publicado são listadas em `dimensoes_indisponiveis` e omitidas do perfil. No banco publicado hoje, `tipo_veiculo` aparece como indisponível, porque a tabela de ocorrências não traz o tipo de veículo; para o Ceará inteiro, os tipos de veículo estão em `/api/v1/analises/veiculos`. Também existe uma "rodovia" chamada `0` (14 ocorrências), que parece ser registro sem rodovia identificada; confirme na plataforma antes de citá-la.
 
 **Erros possíveis:**
 
@@ -427,6 +429,103 @@ Se a tabela tiver data mas não tiver hora, `faixa` aparece em `dimensoes_indisp
 - `404`: município, rodovia ou ano sem nenhum registro;
 - `422`: parâmetro fora dos valores aceitos;
 - `503`: banco indisponível, ou tabela de acidentes sem data da ocorrência.
+
+## `GET /api/v1/analises/clima`
+
+**O que faz:** mostra em que condição do tempo os acidentes aconteceram e qual foi a gravidade em cada uma. É a única rota que usa os dados do Open-Meteo: para cada acidente, a plataforma buscou a condição do tempo no horário e no local da ocorrência. Responde perguntas como "quantos acidentes aconteceram com chuva?" e "os acidentes com tempo seco são mais graves?". Quando `ano` é omitido, os anos são somados.
+
+**Parâmetros:**
+
+- `ano` — opcional;
+- `ordenar_por` — `acidentes` (padrão), `mortes` ou `mortes_por_100_acidentes`;
+- `min_acidentes` — mínimo de acidentes por condição para entrar em `data`, padrão 1; use um valor maior com `mortes_por_100_acidentes` para ignorar condições raras.
+
+```bash
+curl 'http://127.0.0.1:8000/api/v1/analises/clima?ano=2025'
+```
+
+> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
+
+A resposta traz:
+
+- `data`: uma linha por condição (`Céu limpo`, `Nublado`, `Garoa`, `Chuva`...), com `categoria`, `codigo` (o nome do grupo em inglês, como `clear`), `com_precipitacao`, `acidentes`, `mortes`, `feridos_graves`, `acidentes_fatais`, `pct_dos_acidentes`, `mortes_por_100_acidentes`, `pct_acidentes_fatais` e `medias`;
+- `medias`: temperatura (°C), umidade (%), precipitação (mm), visibilidade (km) e vento (km/h) médios no momento dos acidentes daquela condição. Ao somar anos, a média é ponderada pelo número de acidentes;
+- `por_precipitacao`: o mesmo resumo em duas linhas, `Sem precipitação` e `Com precipitação`. Não é afetado por `min_acidentes`;
+- `total_acidentes` e `total_mortes`, que batem com os totais de `/rodovias`.
+
+**No banco publicado hoje:** 831 dos 3.559 acidentes (23%) aconteceram com precipitação, com 9,87 mortes a cada 100 acidentes, contra 14,3 nos acidentes sem precipitação. Isso **não** quer dizer que chuva é mais segura: a rota não sabe quantas horas choveu nem quanta gente estava na estrada. A visibilidade média de 2026 nos acidentes sem precipitação (43,6 km) é quase o dobro da de 2024 (23,7 km) e 2025 (26,9 km); parece mudança na fonte, e não no tempo, então não compare visibilidade entre anos sem confirmar na plataforma principal.
+
+**Erros possíveis:**
+
+- `404`: ano sem nenhum registro;
+- `422`: parâmetro fora dos valores aceitos;
+- `503`: banco indisponível, tabela de clima ausente, ou ordenação por mortes numa tabela sem coluna de mortes.
+
+## `GET /api/v1/analises/veiculos`
+
+**O que faz:** lista os tipos de veículo envolvidos nos acidentes e o que aconteceu com os ocupantes de cada tipo. Responde perguntas como "que fatia das mortes é de motociclistas?" e "em qual tipo de veículo os ocupantes mais morrem?". Quando `ano` é omitido, os anos são somados.
+
+**Parâmetros:**
+
+- `ano` — opcional;
+- `ordenar_por` — `veiculos` (padrão), `mortes`, `feridos_graves`, `mortes_por_100_veiculos` ou `feridos_graves_por_100_veiculos`;
+- `min_veiculos` — mínimo de veículos envolvidos por tipo, padrão 1; use um valor maior com as taxas para ignorar tipos raros;
+- `limit` — 1 a 50, padrão 20.
+
+```bash
+curl 'http://127.0.0.1:8000/api/v1/analises/veiculos?ano=2025&ordenar_por=mortes_por_100_veiculos&min_veiculos=100'
+```
+
+> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
+
+Cada item traz `tipo_veiculo`, `veiculos_envolvidos`, `acidentes`, `ocupantes`, `mortes`, `feridos_graves`, `feridos_leves`, `ilesos`, `pct_dos_veiculos`, `pct_das_mortes`, `mortes_por_100_veiculos`, `feridos_graves_por_100_veiculos` e `idade_media_veiculo` (em anos; `null` quando não se aplica, como em bicicleta). A resposta traz também `total_veiculos` e `total_mortes`, calculados antes de `min_veiculos` e `limit`.
+
+**Como ler:**
+
+- `mortes` e os feridos são dos ocupantes daquele tipo de veículo. Por isso `total_mortes` (386 no banco publicado) fica abaixo do total de `/rodovias` (472);
+- um acidente entre uma moto e um carro entra em `acidentes` dos dois tipos. Não some a coluna `acidentes`;
+- as taxas são por veículo envolvido em acidente, não por veículo em circulação. Sem o tamanho da frota e os km rodados, a rota não diz qual veículo é mais arriscado, só qual teve desfecho pior quando o acidente aconteceu.
+
+**No banco publicado hoje:** as motocicletas são 28,5% dos veículos envolvidos e 54,9% das mortes.
+
+**Erros possíveis:**
+
+- `404`: ano sem nenhum registro;
+- `422`: parâmetro fora dos valores aceitos;
+- `503`: banco indisponível, tabela de veículos ausente, ou ordenação por uma coluna (mortes ou feridos graves) que a tabela publicada não tem.
+
+## `GET /api/v1/analises/regioes`
+
+**O que faz:** compara as regiões do Ceará (divisão do IBGE) por acidentes, mortes e feridos graves, em números absolutos e a cada 100 mil habitantes. Responde perguntas como "qual região concentra mais acidentes?" e "onde se morre mais em relação ao tamanho da população?". Quando `ano` é omitido, os anos são somados.
+
+**Parâmetros:**
+
+- `nivel` — `intermediaria` (padrão, 6 regiões) ou `imediata` (18 regiões);
+- `ano` — opcional;
+- `ordenar_por` — `acidentes` (padrão), `mortes`, `feridos_graves`, `acidentes_por_100k`, `mortes_por_100k` ou `feridos_graves_por_100k`;
+- `limit` — 1 a 50, padrão 20.
+
+```bash
+curl 'http://127.0.0.1:8000/api/v1/analises/regioes?ano=2025&ordenar_por=mortes_por_100k'
+```
+
+> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
+
+Cada item traz `regiao`, `municipios` (quantos municípios a região tem), `acidentes`, `mortes`, `feridos_graves`, `pct_dos_acidentes`, `pct_das_mortes`, `mortes_por_100_acidentes`, `acidentes_por_100k`, `mortes_por_100k`, `feridos_graves_por_100k` e `municipio_com_mais_acidentes`. A resposta traz também `total_acidentes` e `total_mortes`, que batem com os totais de `/rodovias`.
+
+**Como ler:**
+
+- as taxas usam a população do IBGE da mart municipal. Com vários anos somados, a taxa é a média anual por 100 mil habitantes; como 2026 vai só até 31/08, use `ano` com um ano fechado (2024 ou 2025) para comparar;
+- só entram acidentes de rodovias federais registrados pela PRF. Uma região com mais quilômetros de rodovia federal registra mais acidentes sem que isso diga algo sobre a população dela;
+- regiões com pouca população e poucos acidentes têm taxas instáveis.
+
+**No banco publicado hoje (2025, regiões intermediárias):** Fortaleza concentra 66% dos acidentes (864 de 1.302) e tem a maior taxa de acidentes (17,1 a cada 100 mil habitantes). Quixadá tem a maior taxa de mortes (2,8 a cada 100 mil), e Juazeiro do Norte tem 28 mortes a cada 100 acidentes, contra 10 em Fortaleza.
+
+**Erros possíveis:**
+
+- `404`: ano sem nenhum registro;
+- `422`: parâmetro fora dos valores aceitos;
+- `503`: banco indisponível, tabela municipal ausente, nível de região ausente na tabela, ou ordenação por uma coluna (mortes, feridos graves ou população) que a tabela publicada não tem.
 
 ## `GET /api/v1/rodovias`
 
