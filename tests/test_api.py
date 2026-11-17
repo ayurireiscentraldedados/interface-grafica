@@ -1124,3 +1124,95 @@ def test_openapi_parametros_documentam_codigo_ibge_e_formato_rodovia(client: Tes
     comparar_param = next(p for p in evolucao_get["parameters"] if p["name"] == "comparar")
     assert "mesmo_periodo" in comparar_param["description"]
 
+
+# ---------- regiões do IBGE ----------
+
+@pytest.fixture()
+def client_regioes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    return _client_tables(tmp_path, monkeypatch, {
+        "mart_municipality_road_safety_yearly": """
+            SELECT * FROM (VALUES
+                (2025, 'Fortaleza', 'Fortaleza', 'Fortaleza', 100, 10, 40, 1000000),
+                (2026, 'Fortaleza', 'Fortaleza', 'Fortaleza', 50, 6, 20, 1000000),
+                (2025, 'Caucaia', 'Fortaleza', 'Fortaleza', 30, 3, 10, 200000),
+                (2025, 'Sobral', 'Sobral', 'Sobral', 20, 8, 9, 100000),
+                (2026, 'Sobral', 'Sobral', 'Sobral', 10, 2, 4, 100000),
+                (2025, 'Ipu', 'Sobral', 'Ipu - Guaraciaba', 5, NULL, 1, 40000)
+            ) t(year, municipality, intermediate_region, immediate_region, accidents, deaths,
+                serious_injuries, population)
+        """,
+    })
+
+
+def test_regioes_soma_os_anos_e_calcula_taxas(client_regioes: TestClient):
+    body = client_regioes.get("/api/v1/analises/regioes").json()
+    assert (body["total_acidentes"], body["total_mortes"], body["count"]) == (215, 29, 2)
+    assert [r["regiao"] for r in body["data"]] == ["Fortaleza", "Sobral"]
+    assert body["data"][0] == {
+        "regiao": "Fortaleza",
+        "municipios": 2,
+        "acidentes": 180,
+        "mortes": 19,
+        "feridos_graves": 70,
+        "pct_dos_acidentes": 83.72,
+        "pct_das_mortes": 65.52,
+        "mortes_por_100_acidentes": 10.56,
+        # 180 acidentes / (1.000.000 + 1.000.000 + 200.000) de população somada, por 100 mil
+        "acidentes_por_100k": 8.18,
+        "mortes_por_100k": 0.86,
+        "feridos_graves_por_100k": 3.18,
+        "municipio_com_mais_acidentes": {"municipio": "Fortaleza", "acidentes": 150},
+    }
+
+
+def test_regioes_nivel_imediata_e_filtro_ano(client_regioes: TestClient):
+    body = client_regioes.get("/api/v1/analises/regioes?nivel=imediata&ano=2025").json()
+    assert body["filters"]["nivel"] == "imediata"
+    assert [r["regiao"] for r in body["data"]] == ["Fortaleza", "Sobral", "Ipu - Guaraciaba"]
+    assert body["total_acidentes"] == 155
+    assert client_regioes.get("/api/v1/analises/regioes?ano=2031").status_code == 404
+
+
+def test_regioes_ordenacao_por_taxa_e_limit(client_regioes: TestClient):
+    get = client_regioes.get
+    por_taxa = get("/api/v1/analises/regioes?ordenar_por=mortes_por_100k").json()["data"]
+    # Sobral tem menos acidentes, mas muito menos habitantes: a taxa a coloca na frente.
+    assert [r["regiao"] for r in por_taxa] == ["Sobral", "Fortaleza"]
+    assert get("/api/v1/analises/regioes?limit=1").json()["count"] == 1
+    sem_mortes = get("/api/v1/analises/regioes?nivel=imediata&ano=2025&ordenar_por=mortes").json()["data"]
+    assert sem_mortes[-1]["regiao"] == "Ipu - Guaraciaba" and sem_mortes[-1]["mortes"] is None
+
+
+@pytest.mark.parametrize("url", [
+    "/api/v1/analises/regioes?nivel=estadual",
+    "/api/v1/analises/regioes?ordenar_por=chuva",
+    "/api/v1/analises/regioes?limit=0",
+    "/api/v1/analises/regioes?ano=abc",
+])
+def test_regioes_parametro_invalido_retorna_422(client_regioes: TestClient, url: str):
+    assert client_regioes.get(url).status_code == 422
+
+
+def test_regioes_sem_coluna_de_regiao_ou_populacao(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    c = _client_tables(tmp_path, monkeypatch, {
+        "mart_municipality_road_safety_yearly": """
+            SELECT * FROM (VALUES (2025, 'Fortaleza', 'Fortaleza', 10)) t(year, municipality, intermediate_region, accidents)
+        """,
+    })
+    assert c.get("/api/v1/analises/regioes?nivel=imediata").status_code == 503
+    assert c.get("/api/v1/analises/regioes?ordenar_por=mortes").status_code == 503
+    assert c.get("/api/v1/analises/regioes?ordenar_por=acidentes_por_100k").status_code == 503
+    body = c.get("/api/v1/analises/regioes").json()
+    assert body["total_mortes"] is None
+    assert body["data"][0]["acidentes_por_100k"] is None and body["data"][0]["mortes"] is None
+
+
+def test_regioes_sem_a_tabela_ou_sem_banco_retornam_503(client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    assert client.get("/api/v1/analises/regioes").status_code == 503
+    monkeypatch.setenv("ROAD_SAFETY_DB_PATH", str(tmp_path / "nao-existe.duckdb"))
+    assert client.get("/api/v1/analises/regioes").status_code == 503
+
+
+def test_regioes_devolvem_sempre_a_mesma_resposta(client_regioes: TestClient):
+    url = "/api/v1/analises/regioes?nivel=imediata"
+    assert client_regioes.get(url).json() == client_regioes.get(url).json()

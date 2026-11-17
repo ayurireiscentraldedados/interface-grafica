@@ -53,6 +53,10 @@ WEATHER_AVERAGES = {
     "visibilidade_km": ["avg_visibility_km", "visibilidade_media_km"],
     "vento_kmh": ["avg_wind_speed_kmh", "vento_medio_kmh"],
 }
+REGION_LEVELS = {
+    "intermediaria": ["intermediate_region", "regiao_intermediaria"],
+    "imediata": ["immediate_region", "regiao_imediata"],
+}
 VEHICLES_INVOLVED_COLS = ["vehicles_involved", "vehicles", "veiculos_envolvidos", "veiculos"]
 OCCUPANTS_COLS = ["occupants", "ocupantes"]
 MINOR_INJURIES_COLS = ["minor_injuries", "feridos_leves"]
@@ -1547,6 +1551,160 @@ def veiculos(
                 "vítimas do acidente. Um acidente com dois tipos de veículo entra em 'acidentes' dos "
                 "dois; não some essa coluna. Tipos com poucos veículos têm taxas instáveis. Não indica "
                 "causalidade."
+            ),
+            "data": items[:limit],
+        }
+    finally:
+        conn.close()
+
+
+@router.get(
+    "/analises/regioes",
+    tags=["analises"],
+    summary="Compara as regiões do Ceará (IBGE) por acidentes e por taxas a cada 100 mil habitantes",
+)
+def regioes(
+    nivel: Annotated[
+        Literal["intermediaria", "imediata"],
+        Query(description="Divisão regional do IBGE: 6 regiões intermediárias ou 18 imediatas."),
+    ] = "intermediaria",
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Ano de referência (ex.: 2024, 2025 ou 2026 parcial)."),
+    ] = None,
+    ordenar_por: Annotated[
+        Literal[
+            "acidentes",
+            "mortes",
+            "feridos_graves",
+            "acidentes_por_100k",
+            "mortes_por_100k",
+            "feridos_graves_por_100k",
+        ],
+        Query(description="Indicador usado na ordenação decrescente."),
+    ] = "acidentes",
+    limit: Annotated[int, Query(ge=1, le=50, description="Quantidade máxima de regiões (1 a 50).")] = 20,
+) -> dict:
+    conn = connect()
+    try:
+        table = _ensure_table(conn, "municipal")
+        region_col = resolve_column(conn, table, REGION_LEVELS[nivel])
+        if region_col is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Nível '{nivel}' indisponível: a mart municipal publicada não tem coluna de região "
+                    f"(aceitas: {', '.join(REGION_LEVELS[nivel])})."
+                ),
+            )
+        name_col = resolve_column(conn, table, MUNICIPALITY_COLS, required=True)
+        acc_col = resolve_column(conn, table, ACCIDENTS_COLS, required=True)
+        deaths_col = resolve_column(conn, table, DEATHS_COLS)
+        serious_col = resolve_column(conn, table, SERIOUS_COLS)
+        pop_col = resolve_column(conn, table, POPULATION_COLS)
+        needs_column = {
+            "mortes": deaths_col,
+            "mortes_por_100k": deaths_col,
+            "feridos_graves": serious_col,
+            "feridos_graves_por_100k": serious_col,
+        }
+        if ordenar_por.endswith("_por_100k") and pop_col is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Ordenação '{ordenar_por}' indisponível: a mart municipal publicada não tem "
+                    f"coluna de população (aceitas: {', '.join(POPULATION_COLS)})."
+                ),
+            )
+        if ordenar_por in needs_column and needs_column[ordenar_por] is None:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Ordenação '{ordenar_por}' indisponível nesta versão do banco exportado.",
+            )
+
+        region = _category_sql(region_col)
+        name = quote_identifier(name_col)
+        acc = quote_identifier(acc_col)
+        where, params = _year_where(conn, table, ano)
+        base = quote_identifier(table)
+        select = [
+            f"{region} AS regiao",
+            f"COUNT(DISTINCT {name}) AS municipios",
+            f"SUM({acc}) AS acidentes",
+            f"{_sum_sql(deaths_col)} AS mortes",
+            f"{_sum_sql(serious_col)} AS feridos_graves",
+            f"{_sum_sql(pop_col)} AS populacao_somada",
+        ]
+        rows = rows_as_dicts(
+            conn.execute(f"SELECT {', '.join(select)} FROM {base}{where} GROUP BY 1", params)
+        )
+        if ano is not None and not rows:
+            raise HTTPException(status_code=404, detail="Ano não encontrado.")
+
+        # Município com mais acidentes em cada região (soma dos anos pedidos).
+        top_rows = rows_as_dicts(
+            conn.execute(
+                f"""
+                SELECT regiao, municipio, acidentes FROM (
+                    SELECT {region} AS regiao, {name} AS municipio, SUM({acc}) AS acidentes,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY {region} ORDER BY SUM({acc}) DESC, {name}
+                           ) AS pos
+                    FROM {base}{where} GROUP BY 1, 2
+                ) WHERE pos = 1
+                """,
+                params,
+            )
+        )
+        top = {t["regiao"]: t for t in top_rows}
+
+        total_acidentes = sum(r["acidentes"] or 0 for r in rows)
+        total_mortes = sum(r["mortes"] or 0 for r in rows) if deaths_col else None
+        items = []
+        for r in rows:
+            acidentes = _number(r["acidentes"]) or 0
+            mortes = _number(r["mortes"])
+            graves = _number(r["feridos_graves"])
+            pop = _number(r["populacao_somada"]) if pop_col else None
+            maior = top.get(r["regiao"])
+            items.append(
+                {
+                    "regiao": r["regiao"],
+                    "municipios": r["municipios"],
+                    "acidentes": acidentes,
+                    "mortes": mortes,
+                    "feridos_graves": graves,
+                    "pct_dos_acidentes": _rate(acidentes, total_acidentes),
+                    "pct_das_mortes": _rate(mortes, total_mortes),
+                    "mortes_por_100_acidentes": _rate(mortes, acidentes),
+                    "acidentes_por_100k": None if not pop else round(acidentes * 100000 / pop, 2),
+                    "mortes_por_100k": (
+                        None if not pop or mortes is None else round(mortes * 100000 / pop, 2)
+                    ),
+                    "feridos_graves_por_100k": (
+                        None if not pop or graves is None else round(graves * 100000 / pop, 2)
+                    ),
+                    "municipio_com_mais_acidentes": (
+                        {"municipio": maior["municipio"], "acidentes": _number(maior["acidentes"])}
+                        if maior
+                        else None
+                    ),
+                }
+            )
+        items.sort(key=lambda i: (-(i[ordenar_por] or 0), -i["acidentes"], i["regiao"]))
+
+        return {
+            "count": min(len(items), limit),
+            "filters": {"nivel": nivel, "ano": ano, "ordenar_por": ordenar_por, "limit": limit},
+            "total_acidentes": total_acidentes,
+            "total_mortes": total_mortes,
+            "aviso": (
+                "Soma, por região do IBGE, os acidentes registrados pela PRF em rodovias federais nos "
+                "municípios de cada região; estradas estaduais e municipais não entram. As taxas usam a "
+                "população do IBGE: com vários anos somados, são a média anual por 100 mil habitantes, "
+                "e 2026 é parcial (até 31/08/2026), o que puxa a taxa para baixo; para comparar, use "
+                "'ano' com um ano fechado. Regiões com mais rodovias federais registram mais acidentes "
+                "sem que isso diga que a população local dirige pior. Não indica causalidade."
             ),
             "data": items[:limit],
         }

@@ -25,7 +25,7 @@
 
 - Cobrou o grupo para entregarem as modificações.
 - Criou a versão inicial deste resumo por integrante.
-- Criou cinco rotas novas de análise na API:
+- Criou seis rotas novas de análise na API:
 
 ### 1. Risco per capita
 
@@ -66,6 +66,12 @@ Cruza os acidentes com a condição do tempo (dados do Open-Meteo): céu limpo, 
 **Rota:** `/api/v1/analises/veiculos`
 
 Compara os tipos de veículo envolvidos nos acidentes (motocicleta, automóvel, bicicleta etc.). Traz veículos envolvidos, ocupantes, mortes, feridos, a fatia de cada tipo nas mortes, mortes e feridos graves a cada 100 veículos e a idade média dos veículos. Dá para ordenar por qualquer uma dessas medidas e ignorar tipos com poucos veículos.
+
+### 6. Regiões do Ceará
+
+**Rota:** `/api/v1/analises/regioes`
+
+Compara as regiões do IBGE (6 intermediárias ou 18 imediatas) por acidentes, mortes e feridos graves, em números absolutos e a cada 100 mil habitantes. Mostra também o município com mais acidentes em cada região e permite filtrar por ano.
 
 ---
 

@@ -221,3 +221,50 @@
 **Evidência coletada:** [PREENCHER NA SEMANA]
 
 **Próxima semana:** registrar o que fica publicado e encerrar a ação.
+
+
+---
+
+## Registro semanal — Felipe dos Reis Pena
+
+> Resumo do que o Felipe fez em cada semana, com as rotas que criou na API. Cada rota tem testes automatizados em `tests/test_api.py` e documentação no `README.md`.
+
+### Semana 1 – 18/09/2026
+
+Pesquisas para implementação de novas rotas, identificando que as tabelas de clima e tipo de veículo já existiam no banco de dados, mas ainda não eram utilizadas por nenhuma rota. Criação da rota `/api/v1/analises/veiculos`.
+
+### Semana 2 – 25/09/2026
+
+Pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/clima`.
+
+### Semana 3 – 02/10/2026
+
+Pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/perfil-rodovia`.
+
+### Semana 4 – 09/10/2026
+
+Pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/circunstancias`.
+
+### Semana 5 – 16/10/2026
+
+Pesquisas para implementação de novas rotas. Criação da rota `/api/v1/municipios/risco-per-capita`.
+
+### Semana 6 – 23/10/2026
+
+Sem atividade registrada nesta semana.
+
+### Semana 7 – 30/10/2026
+
+Pesquisas para implementação de novas rotas, identificando oportunidades de utilização das tabelas de clima e tipo de veículo já existentes no banco de dados.
+
+### Semana 8 – 06/11/2026
+
+Criação da rota `/api/v1/analises/clima`.
+
+### Semana 9 – 13/11/2026
+
+Criação da rota `/api/v1/analises/veiculos`.
+
+### Semana 10 – 20/11/2026
+
+Criação da rota `/api/v1/analises/regioes`, que compara as regiões do Ceará (divisão do IBGE, em 6 regiões intermediárias ou 18 imediatas) por acidentes, mortes e feridos graves, em números absolutos e a cada 100 mil habitantes. Cada região traz também o município com mais acidentes. A rota aproveita as colunas de região da tabela municipal, que nenhuma rota usava até então, e aceita filtro por ano, escolha do nível, ordenação por seis indicadores e limite de resultados. Também foram escritos os testes automatizados da rota e a seção correspondente no `README.md`.

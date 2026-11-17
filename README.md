@@ -494,6 +494,39 @@ Cada item traz `tipo_veiculo`, `veiculos_envolvidos`, `acidentes`, `ocupantes`, 
 - `422`: parâmetro fora dos valores aceitos;
 - `503`: banco indisponível, tabela de veículos ausente, ou ordenação por uma coluna (mortes ou feridos graves) que a tabela publicada não tem.
 
+## `GET /api/v1/analises/regioes`
+
+**O que faz:** compara as regiões do Ceará (divisão do IBGE) por acidentes, mortes e feridos graves, em números absolutos e a cada 100 mil habitantes. Responde perguntas como "qual região concentra mais acidentes?" e "onde se morre mais em relação ao tamanho da população?". Quando `ano` é omitido, os anos são somados.
+
+**Parâmetros:**
+
+- `nivel` — `intermediaria` (padrão, 6 regiões) ou `imediata` (18 regiões);
+- `ano` — opcional;
+- `ordenar_por` — `acidentes` (padrão), `mortes`, `feridos_graves`, `acidentes_por_100k`, `mortes_por_100k` ou `feridos_graves_por_100k`;
+- `limit` — 1 a 50, padrão 20.
+
+```bash
+curl 'http://127.0.0.1:8000/api/v1/analises/regioes?ano=2025&ordenar_por=mortes_por_100k'
+```
+
+> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
+
+Cada item traz `regiao`, `municipios` (quantos municípios a região tem), `acidentes`, `mortes`, `feridos_graves`, `pct_dos_acidentes`, `pct_das_mortes`, `mortes_por_100_acidentes`, `acidentes_por_100k`, `mortes_por_100k`, `feridos_graves_por_100k` e `municipio_com_mais_acidentes`. A resposta traz também `total_acidentes` e `total_mortes`, que batem com os totais de `/rodovias`.
+
+**Como ler:**
+
+- as taxas usam a população do IBGE da mart municipal. Com vários anos somados, a taxa é a média anual por 100 mil habitantes; como 2026 vai só até 31/08, use `ano` com um ano fechado (2024 ou 2025) para comparar;
+- só entram acidentes de rodovias federais registrados pela PRF. Uma região com mais quilômetros de rodovia federal registra mais acidentes sem que isso diga algo sobre a população dela;
+- regiões com pouca população e poucos acidentes têm taxas instáveis.
+
+**No banco publicado hoje (2025, regiões intermediárias):** Fortaleza concentra 66% dos acidentes (864 de 1.302) e tem a maior taxa de acidentes (17,1 a cada 100 mil habitantes). Quixadá tem a maior taxa de mortes (2,8 a cada 100 mil), e Juazeiro do Norte tem 28 mortes a cada 100 acidentes, contra 10 em Fortaleza.
+
+**Erros possíveis:**
+
+- `404`: ano sem nenhum registro;
+- `422`: parâmetro fora dos valores aceitos;
+- `503`: banco indisponível, tabela municipal ausente, nível de região ausente na tabela, ou ordenação por uma coluna (mortes, feridos graves ou população) que a tabela publicada não tem.
+
 ## `GET /api/v1/rodovias`
 
 **O que faz:** lista/rankeia rodovias pelos indicadores observados na camada Gold.
