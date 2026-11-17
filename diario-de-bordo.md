@@ -43,7 +43,7 @@
 
 ## Semana 2 — 25/09/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h; Felipe dos Reis Pena — horas não registradas
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
@@ -63,7 +63,7 @@
 
 ## Semana 3 — 02/10/2026
 
-**Quem trabalhou e quanto:** Felipe dos Reis Pena — horas não registradas
+**Quem trabalhou e quanto:** Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
@@ -146,7 +146,7 @@
 
 ## Semana 7 — 30/10/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h; Felipe dos Reis Pena — horas não registradas
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 2h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
@@ -166,7 +166,7 @@
 
 ## Semana 8 — 06/11/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Jorge Leão Salgado Neto — 1h; Felipe dos Reis Pena — horas não registradas
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Jorge Leão Salgado Neto — 1h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
@@ -188,7 +188,7 @@
 
 > Entrega do **Marco 2**.
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Felipe dos Reis Pena — horas não registradas
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 3h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
@@ -209,7 +209,7 @@
 
 ## Semana 10 — 20/11/2026
 
-**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 4h; Felipe dos Reis Pena — horas não registradas
+**Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 4h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
