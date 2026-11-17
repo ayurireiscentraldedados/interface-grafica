@@ -1,90 +1,73 @@
-# Diário de bordo
+# Resumo de contribuições por integrante (apoio ao Diário de Bordo)
 
+> O registro semanal oficial da disciplina (com horas, obstáculos, contato com o público e evidências por semana) está em [`diario-de-bordo.md`](./diario-de-bordo.md).
 
-Semana 1 – 18/09/2026
-Felipe: Pesquisas para implementação de uma nova rota 
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+## Ayuri Reis (`Ayuri de Souza dos Reis`)
 
-Semana 2 – 25/09/2026
-Felipe: critou a rota `/api/v1/analises/circunstancias`
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+**Papel no plano de ação:** Documentação e experiência de uso (`README`, clareza da documentação `/docs`, revisão do teste do estranho e registro das dificuldades de uso).
 
-Semana 3 – 02/10/2026
-Felipe: Pesquisas para implementação de uma nova rota
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+**O que fez:**
 
-Semana 4 – 09/10/2026
-Felipe: criou a rota `/api/v1/municipios/risco-per-capita`
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+- Estruturou inicialmente o repositório da equipe e o modelo do diário de bordo (`3ea102a`, `e6751ab`), cobrando e organizando as entregas do grupo no Git.
+- Aprimorou a documentação interativa `/docs` no FastAPI (`app/main.py` e `app/routes.py`) a partir das dificuldades observadas nos testes sem orientação:
+  - adicionou o guia **"Como começar sem ajuda"** direto na abertura do `/docs`;
+  - organizou os endpoints nas categorias `meta`, `consultas` e `analises` (`openapi_tags`);
+  - documentou todos os parâmetros com descrições e exemplos (`ibge_code` como `2304400` para Fortaleza, `rodovia` aceitando `116` ou `BR-116`, e explicação do recorte parcial de `2026` até `31/08/2026`);
+  - criou testes automatizados em `tests/test_api.py` validando a documentação gerada em `/openapi.json`.
+- Conduziu e documentou os testes de uso sem orientação ("teste do estranho") e a consolidação de acessos na pasta `evidencias/` (`2026-10-23-teste-externo-01.md`, `2026-11-06-teste-externo-02.md`, `2026-11-12-teste-externo-03.md`, `2026-11-12-logs-render.txt` e `2026-11-12-resumo-acessos.md`) e no `evidencias.csv`.
+- Preencheu e consolidou a entrega do `marco-2.md`, o checklist operacional (`docs/CHECKLIST-MARCO-2.md`), o `README.md` e as entradas semanais do `diario-de-bordo.md`.
 
-Semana 5 – 16/10/2026
-Felipe: Pesquisas para implementação de uma nova rota
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+---
 
-Semana 6 – 23/10/2026
-Felipe: `/api/v1/analises/perfil-rodovia`
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+## Felipe
 
-Semana 7 – 30/10/2026
-Felipe: Pesquisas para implementação de novas rotas: as tabelas de clima (Open-Meteo) e de tipo de veículo já estavam no banco publicado, mas nenhuma rota as usava
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+**O que fez:**
 
-Semana 8 – 06/11/2026
-Felipe: criou a rota `/api/v1/analises/clima`
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+- Cobrou o grupo para entregarem as modificações.
+- Criou a versão inicial deste resumo por integrante.
+- Criou cinco rotas novas de análise na API:
 
-Semana 9 – 13/11/2026
-Felipe: criou a rota `/api/v1/analises/veiculos`
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+### 1. Risco per capita
 
-Semana 10 – 20/11/2026
-Felipe:
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+**Rota:** `/api/v1/municipios/risco-per-capita`
 
-Semana 11 – 27/11/2026
-Felipe:
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+Ranqueia os municípios por acidentes, mortes ou feridos graves **a cada 100 mil habitantes**. Assim cidades pequenas e grandes ficam comparáveis, e Fortaleza não lidera só por ser grande.
 
-Semana 12 – 04/12/2026
-Felipe:
-Ayuri:
-Eduardo:
-Jorge:
-Victor:
+### 2. Circunstâncias dos acidentes
 
+**Rota:** `/api/v1/analises/circunstancias`
+
+Mostra quais circunstâncias aparecem mais nos acidentes fatais. Dá para olhar por causa presumida, tipo de acidente, condição da pista ou iluminação. Para cada categoria, traz:
+
+- quantos acidentes houve;
+- quantos foram fatais;
+- a fatia dela no total de fatais.
+
+### 3. Perfil por rodovia
+
+**Rota:** `/api/v1/analises/perfil-rodovia`
+
+Monta um perfil comparável de cada rodovia federal. Traz:
+
+- acidentes;
+- mortes;
+- proporção de acidentes fatais;
+- o que predomina em horário, clima e tipo de veículo;
+- os trechos mais críticos.
+
+### 4. Condições do tempo
+
+**Rota:** `/api/v1/analises/clima`
+
+Cruza os acidentes com a condição do tempo (dados do Open-Meteo): céu limpo, chuva, garoa, tempestade etc. Para cada condição, traz acidentes, mortes, feridos graves, a proporção de acidentes fatais e as médias de temperatura e precipitação (ponderadas pelo número de acidentes). Também resume os acidentes com e sem precipitação.
+
+### 5. Tipos de veículo
+
+**Rota:** `/api/v1/analises/veiculos`
+
+Compara os tipos de veículo envolvidos nos acidentes (motocicleta, automóvel, bicicleta etc.). Traz veículos envolvidos, ocupantes, mortes, feridos, a fatia de cada tipo nas mortes, mortes e feridos graves a cada 100 veículos e a idade média dos veículos. Dá para ordenar por qualquer uma dessas medidas e ignorar tipos com poucos veículos.
+
+---
 
 ## Eduardo
 
@@ -107,14 +90,12 @@ Uma tabela de **dia da semana por horário**, com os **5 momentos mais críticos
 **O que fez:**
 
 - Deu a ideia do projeto.
-- Fez o primeiro protótipo.
+- Fez o primeiro protótipo, o empacotamento do DuckDB na release `data-2026-08-v1` e a publicação inicial no Render.
 
 ---
 
-## Ayuri
+## Jorge
 
 **O que fez:**
 
-- Cobrou o grupo para entregarem as modificações.
-- Conversou com o grupo.
-- Organizou o git.
+- Elaborou o formulário de pesquisa técnica (Google Forms) para coleta de feedback externo e colaborou nos testes da API.

@@ -1095,3 +1095,32 @@ def test_clima_e_veiculos_com_banco_ausente_retornam_503(tmp_path: Path, monkeyp
 def test_clima_e_veiculos_devolvem_sempre_a_mesma_resposta(client_clima_veiculos: TestClient):
     for url in ("/api/v1/analises/clima", "/api/v1/analises/veiculos"):
         assert client_clima_veiculos.get(url).json() == client_clima_veiculos.get(url).json()
+
+
+def test_openapi_docs_incluem_tags_e_orientacoes_de_uso(client: TestClient):
+    schema = client.get("/openapi.json").json()
+    tag_names = [t["name"] for t in schema.get("tags", [])]
+    assert tag_names == ["meta", "consultas", "analises"]
+    assert "Como começar sem ajuda" in schema["info"]["description"]
+    assert "2304400" in schema["info"]["description"]
+    assert "31/08/2026" in schema["info"]["description"]
+
+
+def test_openapi_parametros_documentam_codigo_ibge_e_formato_rodovia(client: TestClient):
+    schema = client.get("/openapi.json").json()
+    paths = schema["paths"]
+
+    ind_get = paths["/api/v1/municipios/{ibge_code}/indicadores"]["get"]
+    assert ind_get["tags"] == ["consultas"]
+    ibge_param = next(p for p in ind_get["parameters"] if p["name"] == "ibge_code")
+    assert "2304400" in ibge_param["description"]
+
+    trechos_get = paths["/api/v1/trechos-criticos"]["get"]
+    rodovia_param = next(p for p in trechos_get["parameters"] if p["name"] == "rodovia")
+    assert "BR-116" in rodovia_param["description"]
+
+    evolucao_get = paths["/api/v1/analises/evolucao"]["get"]
+    assert evolucao_get["tags"] == ["analises"]
+    comparar_param = next(p for p in evolucao_get["parameters"] if p["name"] == "comparar")
+    assert "mesmo_periodo" in comparar_param["description"]
+

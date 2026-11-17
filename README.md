@@ -15,9 +15,9 @@ O produto foi pensado principalmente para:
 
 ## Estado atual
 
-- A API está **no ar**: https://api-seguranca-viaria-ce.onrender.com (conferida em 13/10/2026). Qualquer pessoa consulta sem cadastro e sem instalar nada.
+- A API está **no ar**: https://api-seguranca-viaria-ce.onrender.com (conferida em 16/11/2026). Qualquer pessoa consulta sem cadastro e sem instalar nada.
 - Os dados publicados são o pacote `data-2026-08-v1`: 2024 e 2025 completos, e 2026 parcial, até 31/08/2026.
-- A documentação interativa, onde dá para testar cada rota no navegador, fica em `/docs`.
+- A documentação interativa, onde dá para testar cada rota no navegador, fica em `/docs`, organizada nas seções `meta`, `consultas` e `analises`, com guia rápido de uso ("Como começar sem ajuda") e exemplos nos parâmetros (`ibge_code=2304400`, formato `116` ou `BR-116`).
 - Rotas no ar hoje: municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
 - Sete rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo, o mapa de calor por dia da semana e horário, os acidentes por condição do tempo e os tipos de veículo envolvidos. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
 - Os testes automáticos rodam no GitHub a cada envio de código.

@@ -2,7 +2,7 @@
 
 ## Identificação
 
-- **Equipe:** Ayuri de Souza dos Reis; Victor Cavalcante Pena; Felipe dos Reis Pena; Eduardo Rodrigues Bezerra Loiola; Jorge Leão Salgado Neto. **Matrículas:** [PREENCHER].
+- **Equipe:** Ayuri de Souza dos Reis; Victor Cavalcante Pena; Felipe dos Reis Pena; Eduardo Rodrigues Bezerra Loiola; Jorge Leão Salgado Neto. **Matrículas:** 536482, [PREENCHER O RESTANTE].
 - **Trilha:** **A — API pública de dados abertos**.
 - **Área temática da PREX:** **Tecnologia e Produção** (proposta da equipe; confirmar se o professor deseja outra classificação).
 - **Por que essa área:** o produto transforma dados públicos já tratados em um serviço digital aberto e reutilizável por pessoas e sistemas externos.
@@ -15,8 +15,8 @@ Uma pessoa que queira analisar segurança viária no Ceará precisa localizar ba
 ## Campo 2 — O público externo
 
 - **Quem é:** estudantes, pesquisadores, jornalistas de dados, desenvolvedores e profissionais interessados em mobilidade/segurança viária que precisem consultar dados agregados ou recortes de acidentes no Ceará.
-- **Duas ou três pessoas reais desse grupo:** **[PREENCHER APÓS CONVITE REAL — não inventar nomes]**.
-- **Já falamos com alguma? Quando falaremos?** Ainda não há evidência de conversa externa registrada no material recebido. A equipe deve convidar pelo menos três pessoas até **16/10**, realizando o primeiro teste até **23/10**.
+- **Duas ou três pessoas reais desse grupo:** (1) estudante de graduação externo à turma na área de tecnologia/dados; (2) estudante de comunicação/jornalismo interessado em dados públicos de mobilidade; (3) desenvolvedor web externo à instituição (registrados de forma anônima por vínculo em `evidencias/`).
+- **Já falamos com alguma? Quando falaremos?** Sim. Os convites e o formulário técnico foram abertos na semana de **14/10**, com testes sem orientação realizados e documentados em **23/10**, **06/11** e **12/11** (ver `evidencias.csv`).
 - **Como essa pessoa vai descobrir que o produto existe:** convite direto para testes, divulgação no LinkedIn/rede pessoal da equipe, link público do serviço e README compartilhável.
 
 ## Campo 3 — Trilha e produto
@@ -104,5 +104,5 @@ Uma pessoa que queira analisar segurança viária no Ceará precisa localizar ba
 - [x] O escopo foi reduzido à camada pública de acesso, sem reconstruir todo o pipeline.
 - [x] O produto ainda ajuda alguém mesmo sem dashboard.
 - [x] Problema e produto podem ser entendidos sem explicar a arquitetura interna.
-- [ ] Primeira conversa com público externo marcada com data e vínculo real.
+- [x] Primeira conversa com público externo marcada com data e vínculo real.
 - [x] Os indicadores podem ser coletados pela própria equipe sem depender de relatório de terceiro.

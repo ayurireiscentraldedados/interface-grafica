@@ -5,7 +5,7 @@ import re
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Path, Query
 
 from app.db import (
     TABLES,
@@ -141,7 +141,15 @@ def _category_sql(col: str) -> str:
     )
 
 
-@router.get("/datasets", summary="Lista os datasets publicados pela API")
+@router.get(
+    "/datasets",
+    tags=["consultas"],
+    summary="Lista os datasets publicados pela API",
+    description=(
+        "Retorna os datasets realmente presentes no arquivo DuckDB publicado e a lista de colunas "
+        "disponíveis em cada tabela."
+    ),
+)
 def datasets() -> dict:
     conn = connect()
     try:
@@ -154,10 +162,28 @@ def datasets() -> dict:
         conn.close()
 
 
-@router.get("/municipios", summary="Lista municípios presentes na camada analítica")
+@router.get(
+    "/municipios",
+    tags=["consultas"],
+    summary="Lista municípios presentes na camada analítica",
+    description=(
+        "Lista os municípios cearenses disponíveis no recorte com seu respectivo `ibge_code` "
+        "(use esse código para consultar `/api/v1/municipios/{ibge_code}/indicadores`)."
+    ),
+)
 def municipios(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    limit: Annotated[int, Query(ge=1, le=500)] = 184,
+    ano: Annotated[
+        int | None,
+        Query(
+            ge=2007,
+            le=2100,
+            description="Filtra municípios presentes em um ano específico (ex.: 2024, 2025 ou 2026 parcial).",
+        ),
+    ] = None,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=500, description="Quantidade máxima de municípios retornados (padrão: 184)."),
+    ] = 184,
 ) -> dict:
     conn = connect()
     try:
@@ -190,12 +216,26 @@ def municipios(
 
 @router.get(
     "/municipios/risco-per-capita",
+    tags=["analises"],
     summary="Rankeia municípios por acidentes, mortes e feridos graves por 100 mil habitantes",
+    description=(
+        "Calcula as taxas de acidentes, mortes e feridos graves por 100 mil habitantes com base na "
+        "população municipal do IBGE presente na camada Gold, permitindo comparar municípios de portes diferentes."
+    ),
 )
 def risco_per_capita(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    ordenar_por: Annotated[Literal["acidentes", "mortes", "feridos_graves"], Query()] = "acidentes",
-    limit: Annotated[int, Query(ge=1, le=184)] = 20,
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Ano de referência (ex.: 2024, 2025 ou 2026 parcial)."),
+    ] = None,
+    ordenar_por: Annotated[
+        Literal["acidentes", "mortes", "feridos_graves"],
+        Query(description="Indicador per capita usado na ordenação decrescente do ranking."),
+    ] = "acidentes",
+    limit: Annotated[
+        int,
+        Query(ge=1, le=184, description="Quantidade máxima de municípios no ranking (1 a 184)."),
+    ] = 20,
 ) -> dict:
     conn = connect()
     try:
@@ -279,11 +319,26 @@ def risco_per_capita(
 
 @router.get(
     "/municipios/{ibge_code}/indicadores",
+    tags=["consultas"],
     summary="Retorna indicadores anuais de segurança viária de um município",
+    description=(
+        "Devolve os indicadores anuais do município identificado pelo código IBGE de 7 dígitos "
+        "(ex.: `2304400` para Fortaleza, `2312908` para Sobral). Consulte `/api/v1/municipios` "
+        "caso ainda não saiba o código IBGE do município desejado."
+    ),
 )
 def indicadores_municipio(
-    ibge_code: str,
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
+    ibge_code: Annotated[
+        str,
+        Path(
+            description="Código IBGE do município com 7 dígitos (ex.: 2304400 para Fortaleza).",
+            examples=["2304400"],
+        ),
+    ],
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Filtra um ano específico (ex.: 2025). Sem filtro, retorna a série disponível."),
+    ] = None,
 ) -> dict:
     conn = connect()
     try:
@@ -309,10 +364,21 @@ def indicadores_municipio(
         conn.close()
 
 
-@router.get("/rodovias", summary="Rankeia rodovias federais pelos indicadores observados")
+@router.get(
+    "/rodovias",
+    tags=["consultas"],
+    summary="Rankeia rodovias federais pelos indicadores observados",
+    description="Lista e ordena as rodovias federais no Ceará pelo volume observado de acidentes, mortes e feridos graves.",
+)
 def rodovias(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Filtra por ano (ex.: 2024, 2025 ou 2026 parcial)."),
+    ] = None,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=100, description="Quantidade máxima de linhas retornadas (padrão: 20)."),
+    ] = 20,
 ) -> dict:
     conn = connect()
     try:
@@ -339,11 +405,28 @@ def rodovias(
         conn.close()
 
 
-@router.get("/trechos-criticos", summary="Lista trechos de 10 km com maior concentração observada")
+@router.get(
+    "/trechos-criticos",
+    tags=["consultas"],
+    summary="Lista trechos de 10 km com maior concentração observada",
+    description=(
+        "Retorna os segmentos rodoviários de 10 km com maior número observado de ocorrências. "
+        "O filtro `rodovia` aceita tanto apenas o número (`116`) quanto o prefixo (`BR-116`)."
+    ),
+)
 def trechos_criticos(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    rodovia: str | None = None,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Filtra por ano (ex.: 2025)."),
+    ] = None,
+    rodovia: Annotated[
+        str | None,
+        Query(description="Filtra por rodovia federal; aceita '116' ou 'BR-116'."),
+    ] = None,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=100, description="Quantidade máxima de trechos retornados (padrão: 20)."),
+    ] = 20,
 ) -> dict:
     conn = connect()
     try:
@@ -382,12 +465,29 @@ def trechos_criticos(
         conn.close()
 
 
-@router.get("/acidentes", summary="Consulta ocorrências georreferenciadas com filtros básicos")
+@router.get(
+    "/acidentes",
+    tags=["consultas"],
+    summary="Consulta ocorrências georreferenciadas com filtros básicos",
+    description="Lista ocorrências individuais da mart de mapa com suporte a paginação (`limit` e `offset`) e filtro por ano e nome do município.",
+)
 def acidentes(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    municipio: str | None = None,
-    limit: Annotated[int, Query(ge=1, le=500)] = 100,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Filtra ocorrências de um ano específico (ex.: 2025)."),
+    ] = None,
+    municipio: Annotated[
+        str | None,
+        Query(description="Nome do município sem diferenciar maiúsculas (ex.: Fortaleza, Sobral)."),
+    ] = None,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=500, description="Tamanho da página de resultados (1 a 500, padrão: 100)."),
+    ] = 100,
+    offset: Annotated[
+        int,
+        Query(ge=0, description="Deslocamento inicial para paginação (padrão: 0)."),
+    ] = 0,
 ) -> dict:
     conn = connect()
     try:
@@ -422,17 +522,32 @@ def acidentes(
 
 @router.get(
     "/analises/circunstancias",
+    tags=["analises"],
     summary="Circunstâncias registradas mais frequentes nos acidentes fatais",
+    description=(
+        "Agrupa ocorrências por dimensão (`causa`, `tipo_acidente`, `condicao_pista` ou `iluminacao`) "
+        "e calcula total de acidentes, acidentes fatais, taxa de fatalidade e participação nos fatais."
+    ),
 )
 def circunstancias(
     dimensao: Annotated[
-        Literal["tipo_acidente", "causa", "condicao_pista", "iluminacao"], Query()
+        Literal["tipo_acidente", "causa", "condicao_pista", "iluminacao"],
+        Query(description="Dimensão analisada (no banco compacto atual, 'iluminacao' está habilitada)."),
     ] = "causa",
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    municipio: str | None = None,
-    ordenar_por: Annotated[Literal["fatais", "taxa_fatal"], Query()] = "fatais",
-    min_acidentes: Annotated[int, Query(ge=1)] = 1,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    ano: Annotated[int | None, Query(ge=2007, le=2100, description="Ano de referência (opcional).")] = None,
+    municipio: Annotated[
+        str | None,
+        Query(description="Filtra ocorrências pelo nome do município (opcional)."),
+    ] = None,
+    ordenar_por: Annotated[
+        Literal["fatais", "taxa_fatal"],
+        Query(description="Ordena por quantidade absoluta de fatais ('fatais') ou percentual ('taxa_fatal')."),
+    ] = "fatais",
+    min_acidentes: Annotated[
+        int,
+        Query(ge=1, description="Mínimo de acidentes na categoria para entrar no resultado."),
+    ] = 1,
+    limit: Annotated[int, Query(ge=1, le=100, description="Limite de categorias retornadas.")] = 20,
 ) -> dict:
     conn = connect()
     try:
@@ -618,17 +733,32 @@ def _critical_segments(conn, highways: list[str], ano: int | None, n: int) -> di
 
 @router.get(
     "/analises/perfil-rodovia",
+    tags=["analises"],
     summary="Perfil comparável de cada rodovia federal: indicadores, características e trechos críticos",
+    description=(
+        "Combina totais por rodovia, distribuição das ocorrências por horário, clima e tipo de veículo "
+        "e os trechos críticos de 10 km de cada BR. Aceita `rodovia` como `116` ou `BR-116`."
+    ),
 )
 def perfil_rodovia(
-    rodovia: str | None = None,
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
+    rodovia: Annotated[
+        str | None,
+        Query(description="Filtra uma rodovia específica (aceita '116' ou 'BR-116')."),
+    ] = None,
+    ano: Annotated[int | None, Query(ge=2007, le=2100, description="Ano de referência (opcional).")] = None,
     ordenar_por: Annotated[
-        Literal["mortes", "acidentes", "mortes_por_100_acidentes"], Query()
+        Literal["mortes", "acidentes", "mortes_por_100_acidentes"],
+        Query(description="Critério de ordenação do ranking de rodovias."),
     ] = "mortes",
-    min_acidentes: Annotated[int, Query(ge=1)] = 1,
-    trechos: Annotated[int, Query(ge=0, le=10)] = 3,
-    limit: Annotated[int, Query(ge=1, le=50)] = 10,
+    min_acidentes: Annotated[
+        int,
+        Query(ge=1, description="Mínimo de acidentes na rodovia para incluí-la na comparação."),
+    ] = 1,
+    trechos: Annotated[
+        int,
+        Query(ge=0, le=10, description="Quantidade de trechos críticos de 10 km por rodovia (0 a 10)."),
+    ] = 3,
+    limit: Annotated[int, Query(ge=1, le=50, description="Quantidade máxima de rodovias retornadas.")] = 10,
 ) -> dict:
     conn = connect()
     try:
@@ -838,14 +968,31 @@ def _same_period_base(conn, scope, year: int, through: date) -> dict:
 
 @router.get(
     "/analises/evolucao",
+    tags=["analises"],
     summary="Série anual ou mensal de acidentes, mortes e feridos graves, com variação percentual",
+    description=(
+        "Retorna a evolução temporal por ano ou por mês com variação percentual. Quando o último ano é "
+        "parcial (como 2026 até 31/08), `comparar=mesmo_periodo` compara com o mesmo intervalo do ano anterior."
+    ),
 )
 def evolucao(
-    granularidade: Annotated[Literal["ano", "mes"], Query()] = "ano",
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    municipio: str | None = None,
-    rodovia: str | None = None,
-    comparar: Annotated[Literal["mesmo_periodo", "total"], Query()] = "mesmo_periodo",
+    granularidade: Annotated[
+        Literal["ano", "mes"],
+        Query(description="Granularidade da série temporal: 'ano' (padrão) ou 'mes'."),
+    ] = "ano",
+    ano: Annotated[int | None, Query(ge=2007, le=2100, description="Filtra os períodos exibidos por ano.")] = None,
+    municipio: Annotated[
+        str | None,
+        Query(description="Filtra pelo nome do município (sem diferenciar maiúsculas)."),
+    ] = None,
+    rodovia: Annotated[
+        str | None,
+        Query(description="Filtra por rodovia federal (aceita '116' ou 'BR-116')."),
+    ] = None,
+    comparar: Annotated[
+        Literal["mesmo_periodo", "total"],
+        Query(description="Critério de comparação para ano parcial ('mesmo_periodo' evita distorção com ano cheio)."),
+    ] = "mesmo_periodo",
 ) -> dict:
     conn = connect()
     try:
@@ -1008,14 +1155,31 @@ def evolucao(
 
 @router.get(
     "/analises/quando-acontece",
+    tags=["analises"],
     summary="Acidentes e mortes por dia da semana e faixa horária (mapa de calor)",
+    description=(
+        "Cruza os 7 dias da semana com turnos (`madrugada`, `manhã`, `tarde`, `noite`) ou horas (`00h` a `23h`) "
+        "e destaca os 5 momentos mais críticos observados na base."
+    ),
 )
 def quando_acontece(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
-    municipio: str | None = None,
-    rodovia: str | None = None,
-    faixa: Annotated[Literal["turno", "hora"], Query()] = "turno",
-    min_acidentes: Annotated[int, Query(ge=1)] = 1,
+    ano: Annotated[int | None, Query(ge=2007, le=2100, description="Filtra ocorrências por ano.")] = None,
+    municipio: Annotated[
+        str | None,
+        Query(description="Filtra ocorrências pelo nome do município."),
+    ] = None,
+    rodovia: Annotated[
+        str | None,
+        Query(description="Filtra por rodovia federal (aceita '116' ou 'BR-116')."),
+    ] = None,
+    faixa: Annotated[
+        Literal["turno", "hora"],
+        Query(description="Agrupamento horário: 'turno' (4 faixas) ou 'hora' (24 faixas)."),
+    ] = "turno",
+    min_acidentes: Annotated[
+        int,
+        Query(ge=1, description="Mínimo de acidentes na célula para entrar na lista 'mais_criticos'."),
+    ] = 1,
 ) -> dict:
     conn = connect()
     try:
