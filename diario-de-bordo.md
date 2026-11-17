@@ -1,6 +1,8 @@
 # Diário de bordo
 
 > Regra: registrar fatos reais na semana em que ocorrerem. Não reconstruir retroativamente atividades que não estão sustentadas por commit, mensagem, reunião ou arquivo.
+>
+> **Nota de revisão (17/11/2026):** as semanas 1 a 10 foram conferidas contra o histórico do Git. Cada rota nova de análise passou a constar na semana do commit que a introduziu (as rotas de risco per capita, circunstâncias e perfil de rodovia em 13/10; clima e veículos em 16/11; regiões em 17/11). Nas semanas anteriores, o trabalho de Felipe aparece como pesquisa, sem atribuir rota que ainda não existia. As horas são as informadas por cada integrante.
 
 ## Índice das semanas
 
@@ -8,14 +10,14 @@
 | --- | --- | --- |
 | [1](#semana-1--18092026) | 18/09/2026 | Primeira reunião e criação do repositório |
 | [2](#semana-2--25092026) | 25/09/2026 | Instrumentos-modelo e organização das branches |
-| [3](#semana-3--02102026) | 02/10/2026 | Rota `/analises/perfil-rodovia` |
-| [4](#semana-4--09102026) | 09/10/2026 | API no ar no Render e rota `/analises/circunstancias` |
+| [3](#semana-3--02102026) | 02/10/2026 | Pesquisa de novas rotas |
+| [4](#semana-4--09102026) | 09/10/2026 | API no ar no Render |
 | [5](#semana-5--16102026) | 16/10/2026 | Novas rotas de análise e formulário de pesquisa |
 | [6](#semana-6--23102026) | 23/10/2026 | 1º teste externo |
 | [7](#semana-7--30102026) | 30/10/2026 | Convites diretos a testadores |
 | [8](#semana-8--06112026) | 06/11/2026 | 2º teste externo |
 | [9](#semana-9--13112026) | 13/11/2026 | **Marco 2**, 3º teste externo |
-| [10](#semana-10--20112026) | 20/11/2026 | Melhoria do `/docs` e rota `/analises/regioes` |
+| [10](#semana-10--20112026) | 20/11/2026 (em andamento) | Melhoria do `/docs` e rotas `/analises/clima`, `/analises/veiculos` e `/analises/regioes` |
 | [11](#semana-11--27112026) | 27/11/2026 | **Marco 3** |
 | [12](#semana-12--04122026) | 04/12/2026 | **Socialização** |
 
@@ -29,7 +31,7 @@
 
 - Realizamos a primeira reunião da equipe para discutir a proposta do projeto, alinhar as ideias iniciais e definir como seria o desenvolvimento do trabalho.
 - Criamos e organizamos o repositório do projeto no GitHub e estruturamos o Diário de Bordo para registrar as atividades, evidências e horas de trabalho da equipe.
-- **Felipe:** pesquisas para implementação de novas rotas, identificando que as tabelas de clima e tipo de veículo já existiam no banco de dados, mas ainda não eram utilizadas por nenhuma rota. Criação da rota `/api/v1/analises/veiculos`.
+- **Felipe:** pesquisas para implementação de novas rotas, identificando que as tabelas de clima e tipo de veículo já existiam no banco de dados, mas ainda não eram utilizadas por nenhuma rota.
 
 **Obstáculo:** Nenhum obstáculo relevante. A reunião foi utilizada principalmente para o planejamento inicial e a organização da equipe.
 
@@ -49,7 +51,7 @@
 
 - Upload dos instrumentos-modelo da disciplina para o repositório e revisão inicial da estrutura do diário de bordo para uso da equipe (commits `3ea102a` e `e6751ab`).
 - Organização das branches e alinhamento inicial do fluxo de versionamento no GitHub.
-- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/clima`.
+- **Felipe:** pesquisas para implementação de novas rotas, sobre o uso dos marts já exportados.
 
 **Obstáculo:** Dificuldade inicial em fechar qual recorte da plataforma principal de segurança viária seria exposto sem depender de todo o pipeline pesado de ETL.
 
@@ -67,13 +69,13 @@
 
 **O que foi feito:**
 
-- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/perfil-rodovia`.
+- **Felipe:** pesquisas para implementação de novas rotas. A rota `/api/v1/analises/perfil-rodovia`, que resultou dessa pesquisa, foi implementada em 13/10 e consta na semana 5.
 
 **Obstáculo:** Sem registro nesta semana.
 
 **Contato com o público:** Sem registro nesta semana.
 
-**Evidência coletada:** Rota `/api/v1/analises/perfil-rodovia` e seus testes em `tests/test_api.py`.
+**Evidência coletada:** Sem commit nesta semana; a primeira versão da rota está no commit `3a460a4` (13/10).
 
 **Próxima semana:** Sem registro nesta semana.
 
@@ -91,7 +93,7 @@
 - Executamos a suíte `pytest -q` e configuramos o GitHub Actions (`.github/workflows/ci.yml`).
 - Revisamos `plano-de-acao.md`, `README.md` e distribuímos os papéis (Ayuri responsável por documentação, clareza do `/docs` e revisão do teste do estranho).
 - Publicamos o endereço público no Render (`https://api-seguranca-viaria-ce.onrender.com`) e definimos perfis externos para os testes.
-- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/analises/circunstancias`.
+- **Felipe:** pesquisas para implementação de novas rotas, em especial sobre a análise de circunstâncias dos acidentes fatais (implementada em 13/10, semana 5).
 
 **Obstáculo:** Entendimento inicial do fluxo de empacotamento do DuckDB para a nuvem gratuita sem acoplar o ETL completo da plataforma principal.
 
@@ -112,7 +114,7 @@
 - Implementação e revisão das novas rotas de análise: `/api/v1/municipios/risco-per-capita`, `/api/v1/analises/circunstancias` e `/api/v1/analises/perfil-rodovia` (commits `54f61e7` a `a1c862c`), além de `/api/v1/analises/evolucao` e `/api/v1/analises/quando-acontece` (commit `eb03506`).
 - Registro de acessos também na saída padrão (`ACESSO ...`) para leitura nos logs do Render (commit `256a6ca`).
 - Criação de formulário de pesquisa técnica para avaliação por usuários externos e revisão da documentação das novas rotas no `README.md` (organização e revisão conduzidas com apoio de Ayuri).
-- **Felipe:** pesquisas para implementação de novas rotas. Criação da rota `/api/v1/municipios/risco-per-capita`.
+- **Felipe:** implementação das rotas `/api/v1/municipios/risco-per-capita`, `/api/v1/analises/circunstancias` e `/api/v1/analises/perfil-rodovia`, com testes de erro e ordem estável das respostas (commit `3a460a4`, 13/10).
 
 **Obstáculo:** O armazenamento local do Render gratuito é efêmero a cada reinício; por isso o middleware passou a gravar também linhas estruturadas `ACESSO` no stdout do serviço.
 
@@ -172,7 +174,7 @@
 
 - Realização e registro do segundo teste com público externo em 06/11 (`evidencias/2026-11-06-teste-externo-02.md`), com estudante de comunicação/jornalismo interessado em dados de mobilidade.
 - Mapeamento do obstáculo de *cold start* da instância gratuita do Render (cerca de 35 segundos na primeira requisição após inatividade) e dúvida sobre a comparação do ano parcial de 2026.
-- **Felipe:** criação da rota `/api/v1/analises/clima`.
+- **Felipe:** pesquisa para uma rota de condição do tempo, a partir da tabela de clima já exportada (implementada na semana 10).
 
 **Obstáculo:** O tempo de despertar (*cold start*) do plano gratuito do Render fez a pessoa testadora achar inicialmente que o link estava fora do ar no primeiro clique.
 
@@ -195,7 +197,7 @@
 - Condução do terceiro teste externo sem orientação em 12/11 com desenvolvedor web externo (`evidencias/2026-11-12-teste-externo-03.md`).
 - Extração e consolidação das linhas de acesso da API com `scripts/summarize_access.py`, totalizando 41 consultas úteis bem-sucedidas (`evidencias/2026-11-12-logs-render.txt` e `evidencias/2026-11-12-resumo-acessos.md`).
 - Conferência das rotas públicas no ar (`https://api-seguranca-viaria-ce.onrender.com/docs` e `/health`).
-- **Felipe:** criação da rota `/api/v1/analises/veiculos`.
+- **Felipe:** pesquisa para uma rota de tipos de veículo, a partir da tabela de veículos já exportada (implementada na semana 10).
 
 **Obstáculo:** As atualizações documentais do Marco 2, a consolidação do `evidencias.csv` e o preenchimento do `marco-2.md` não haviam sido enviados para a branch `main` antes da verificação assíncrona do professor (que ocorreu sem encontro presencial na sexta-feira).
 
@@ -209,14 +211,17 @@
 
 ## Semana 10 — 20/11/2026
 
+> Semana em andamento: o registro abaixo vai até 17/11 e será completado até o fim da semana.
+
 **Quem trabalhou e quanto:** Ayuri de Souza dos Reis — 4h; Felipe dos Reis Pena — 4h
 
 **O que foi feito:**
 
 - Melhoria direta na clareza da documentação interativa `/docs` (`app/main.py` e `app/routes.py`), atendendo às dificuldades reais registradas nos testes externos: inclusão do guia **"Como começar sem ajuda"** no topo do Swagger, organização das rotas em `openapi_tags` (`meta`, `consultas`, `analises`) e adição de descrições e exemplos explícitos em todos os parâmetros (`ibge_code=2304400`, `rodovia` aceitando `116` ou `BR-116`, alerta de recorte parcial de `2026`).
-- Adição de testes automatizados em `tests/test_api.py` para garantir que o schema `/openapi.json` mantenha as tags, instruções iniciais e descrições de parâmetros (`94 passed`).
+- Adição de testes automatizados em `tests/test_api.py` para garantir que o schema `/openapi.json` mantenha as tags, instruções iniciais e descrições de parâmetros (`94 passed` na `main`).
 - Preenchimento completo do `marco-2.md`, atualização do `evidencias.csv`, revisão do `docs/CHECKLIST-MARCO-2.md` e consolidação deste `diario-de-bordo.md` na branch `main`.
-- **Felipe:** criação da rota `/api/v1/analises/regioes`, que compara as regiões do Ceará (divisão do IBGE, em 6 regiões intermediárias ou 18 imediatas) por acidentes, mortes e feridos graves, em números absolutos e a cada 100 mil habitantes. Cada região traz também o município com mais acidentes. A rota aproveita as colunas de região da tabela municipal, que nenhuma rota usava até então, e aceita filtro por ano, escolha do nível, ordenação por seis indicadores e limite de resultados. Também foram escritos os testes automatizados da rota e a seção correspondente no `README.md`.
+- **Felipe:** criação das rotas `/api/v1/analises/clima` e `/api/v1/analises/veiculos`, que passam a usar as tabelas de clima e de veículos já exportadas e antes sem rota (commit `bf4a8de`, 16/11), com os testes e as seções correspondentes no `README.md`.
+- **Felipe:** criação da rota `/api/v1/analises/regioes` (17/11), que compara as regiões do Ceará (divisão do IBGE, em 6 regiões intermediárias ou 18 imediatas) por acidentes, mortes e feridos graves, em números absolutos e a cada 100 mil habitantes. Cada região traz também o município com mais acidentes. A rota aproveita as colunas de região da tabela municipal, que nenhuma rota usava até então, e aceita filtro por ano, escolha do nível, ordenação por seis indicadores e limite de resultados. Também foram escritos os testes automatizados da rota e a seção correspondente no `README.md`.
 
 **Obstáculo:** Sincronização desigual de entregas entre integrantes da equipe; para não comprometer o registro do projeto e da etapa de documentação/experiência de uso, toda a frente de documentação, `/docs`, testes externos, evidências e ficha do Marco 2 foi consolidada e subida diretamente na `main`.
 

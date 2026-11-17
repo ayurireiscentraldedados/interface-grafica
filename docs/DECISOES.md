@@ -32,4 +32,4 @@ A contribuição específica desta ação é uma **API pública, documentada e r
 
 ## Regra de honestidade acadêmica
 
-Diário, evidências e marcos só devem afirmar atividades que de fato ocorreram. Arquivos futuros deste pacote estão marcados como planejados quando necessário e precisam ser atualizados pela equipe após a execução.
+Diário, evidências e marcos só devem afirmar atividades que de fato ocorreram. Arquivos futuros deste repositório estão marcados como planejados quando necessário e precisam ser atualizados pela equipe após a execução.
