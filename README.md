@@ -18,9 +18,11 @@ O produto foi pensado principalmente para:
 - A API está **no ar**: https://api-seguranca-viaria-ce.onrender.com (conferida em 16/11/2026). Qualquer pessoa consulta sem cadastro e sem instalar nada.
 - Os dados publicados são o pacote `data-2026-08-v1`: 2024 e 2025 completos, e 2026 parcial, até 31/08/2026.
 - A documentação interativa, onde dá para testar cada rota no navegador, fica em `/docs`, organizada nas seções `meta`, `consultas` e `analises`, com guia rápido de uso ("Como começar sem ajuda") e exemplos nos parâmetros (`ibge_code=2304400`, formato `116` ou `BR-116`).
-- Rotas no ar hoje: lista de datasets, municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
-- Oito rotas de análise já estão prontas no código, mas **ainda não estão na URL pública**: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo, o mapa de calor por dia da semana e horário, os acidentes por condição do tempo, os tipos de veículo envolvidos e a comparação entre regiões do IBGE. Elas aparecem na URL pública depois do próximo deploy. Enquanto isso, dá para testá-las rodando a API no seu computador (veja abaixo).
+- Rotas de consulta: lista de datasets, municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
+- Oito rotas de análise: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo, o mapa de calor por dia da semana e horário, os acidentes por condição do tempo, os tipos de veículo envolvidos e a comparação entre regiões do IBGE.
 - Os testes automáticos rodam no GitHub a cada envio de código.
+- Para conferir de uma vez só se a API pública está respondendo bem, rode `python scripts/testar_api.py` (veja "Testar a API que está no ar").
+- A API aceita chamadas feitas direto do navegador, a partir de qualquer site (CORS aberto para consultas `GET`), então dá para usá-la em páginas e painéis sem servidor próprio.
 - A API guarda só data e hora, método, caminho, status e tempo de cada consulta. Não guarda nome, e-mail nem IP.
 
 ### Endereços
@@ -71,6 +73,8 @@ print(rodovias[["highway", "accidents", "deaths", "serious_injuries"]])
 
 ### Rodar no seu computador
 
+Precisa de Python 3.13 (versão em `.python-version`). Rode todos os comandos abaixo a partir da **pasta raiz do projeto** (a que contém `app/` e `README.md`), porque o caminho do banco (`data/ceara_road_safety_api.duckdb`) é relativo a ela.
+
 **1. Preparar o ambiente**
 
 ```bash
@@ -106,7 +110,7 @@ python scripts/export_gold.py \
   --source ../ceara-road-safety-data-platform/data/warehouse/ceara_road_safety.duckdb
 ```
 
-Ou:
+Ou, em Linux/macOS (o `make` não vem instalado no Windows; lá, use o comando `python` acima):
 
 ```bash
 make export SOURCE_DB=../ceara-road-safety-data-platform/data/warehouse/ceara_road_safety.duckdb
@@ -298,10 +302,8 @@ curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/municipios/2304400/ind
 - `limit` — 1 a 184, padrão 20.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/municipios/risco-per-capita?ano=2025&ordenar_por=mortes&limit=10'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/municipios/risco-per-capita?ano=2025&ordenar_por=mortes&limit=10'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 Cada item traz `population`, os valores brutos e as taxas `accidents_per_100k`, `deaths_per_100k` e `serious_injuries_per_100k`. Quando a população está ausente ou é zero, as taxas vêm `null` e a linha vai para o fim do ranking.
 
@@ -324,10 +326,8 @@ Cada item traz `population`, os valores brutos e as taxas `accidents_per_100k`, 
 - `limit` — 1 a 100, padrão 20.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/analises/circunstancias?dimensao=iluminacao&ano=2025'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/analises/circunstancias?dimensao=iluminacao&ano=2025'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 Cada item traz `categoria`, `acidentes`, `acidentes_fatais`, `taxa_fatal_pct` e `pct_dos_acidentes_fatais`. A resposta inclui também `total_acidentes`, `total_acidentes_fatais` e um `aviso` sobre a interpretação. Valores vazios aparecem como `Não informado`. Um acidente é fatal quando há mortes registradas ou, na falta dessa coluna, quando a classificação indica vítimas fatais.
 
@@ -352,10 +352,8 @@ Cada item traz `categoria`, `acidentes`, `acidentes_fatais`, `taxa_fatal_pct` e 
 - `limit` — 1 a 50, padrão 10.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/analises/perfil-rodovia?ano=2025&ordenar_por=mortes_por_100_acidentes&min_acidentes=50'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/analises/perfil-rodovia?ano=2025&ordenar_por=mortes_por_100_acidentes&min_acidentes=50'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 Cada perfil traz `posicao`, `acidentes`, `mortes`, `feridos_graves`, `mortes_por_100_acidentes`, `pct_acidentes_fatais`, `predominantes` (a categoria mais frequente de `horario`, `clima` e `tipo_veiculo`), `distribuicoes` (as 3 categorias mais frequentes, com contagem e percentual) e `trechos_criticos` (`km_inicial`, `km_final`, `acidentes`, `mortes`).
 
@@ -380,10 +378,8 @@ Cada perfil traz `posicao`, `acidentes`, `mortes`, `feridos_graves`, `mortes_por
 - `comparar` — `mesmo_periodo` (padrão) ou `total`. Só muda o resultado quando o último ano é parcial.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/analises/evolucao?granularidade=mes&municipio=Fortaleza&ano=2026'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/analises/evolucao?granularidade=mes&municipio=Fortaleza&ano=2026'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 Cada período traz `periodo`, `acidentes`, `mortes`, `feridos_graves`, `parcial`, `var_pct_acidentes`, `var_pct_mortes`, `var_pct_feridos_graves` e `base_comparacao`, que diz com o quê o período foi comparado. Na série mensal, a variação é contra o mês anterior e vem também `var_pct_mesmo_mes_ano_anterior`, que não sofre com sazonalidade. A variação é `null` quando o período-base é zero ou não existe. Meses sem nenhum acidente aparecem com zero.
 
@@ -410,10 +406,8 @@ Cada período traz `periodo`, `acidentes`, `mortes`, `feridos_graves`, `parcial`
 - `min_acidentes` — mínimo de acidentes por célula para entrar em `mais_criticos`, padrão 1.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/analises/quando-acontece?ano=2025&faixa=turno'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/analises/quando-acontece?ano=2025&faixa=turno'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 A resposta traz:
 
@@ -422,7 +416,7 @@ A resposta traz:
 - `mais_criticos`: até 5 células, ordenadas por mortes e depois por acidentes;
 - `total_acidentes`, `total_mortes` e `sem_horario` (ocorrências sem data ou hora, que ficam fora das células).
 
-Se a tabela tiver data mas não tiver hora, `faixa` aparece em `dimensoes_indisponiveis`, e a resposta traz só `por_dia_semana`.
+Se a tabela tiver data mas não tiver hora, `faixa` aparece em `dimensoes_indisponiveis`. Nesse caso `data` e `por_faixa` vêm vazios e `count` vem 0; ficam preenchidos só `por_dia_semana` e `mais_criticos` (os dias mais críticos).
 
 **Erros possíveis:**
 
@@ -441,10 +435,8 @@ Se a tabela tiver data mas não tiver hora, `faixa` aparece em `dimensoes_indisp
 - `min_acidentes` — mínimo de acidentes por condição para entrar em `data`, padrão 1; use um valor maior com `mortes_por_100_acidentes` para ignorar condições raras.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/analises/clima?ano=2025'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/analises/clima?ano=2025'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 A resposta traz:
 
@@ -473,10 +465,8 @@ A resposta traz:
 - `limit` — 1 a 50, padrão 20.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/analises/veiculos?ano=2025&ordenar_por=mortes_por_100_veiculos&min_veiculos=100'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/analises/veiculos?ano=2025&ordenar_por=mortes_por_100_veiculos&min_veiculos=100'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 Cada item traz `tipo_veiculo`, `veiculos_envolvidos`, `acidentes`, `ocupantes`, `mortes`, `feridos_graves`, `feridos_leves`, `ilesos`, `pct_dos_veiculos`, `pct_das_mortes`, `mortes_por_100_veiculos`, `feridos_graves_por_100_veiculos` e `idade_media_veiculo` (em anos; `null` quando não se aplica, como em bicicleta). A resposta traz também `total_veiculos` e `total_mortes`, calculados antes de `min_veiculos` e `limit`.
 
@@ -506,10 +496,8 @@ Cada item traz `tipo_veiculo`, `veiculos_envolvidos`, `acidentes`, `ocupantes`, 
 - `limit` — 1 a 50, padrão 20.
 
 ```bash
-curl 'http://127.0.0.1:8000/api/v1/analises/regioes?ano=2025&ordenar_por=mortes_por_100k'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/analises/regioes?ano=2025&ordenar_por=mortes_por_100k'
 ```
-
-> Ainda não está na URL pública; aparece depois do próximo deploy. Para testar agora, rode a API no seu computador.
 
 Cada item traz `regiao`, `municipios` (quantos municípios a região tem), `acidentes`, `mortes`, `feridos_graves`, `pct_dos_acidentes`, `pct_das_mortes`, `mortes_por_100_acidentes`, `acidentes_por_100k`, `mortes_por_100k`, `feridos_graves_por_100k` e `municipio_com_mais_acidentes`. A resposta traz também `total_acidentes` e `total_mortes`, que batem com os totais de `/rodovias`.
 
@@ -540,6 +528,13 @@ Cada item traz `regiao`, `municipios` (quantos municípios a região tem), `acid
 curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/rodovias?ano=2025&limit=10'
 ```
 
+O resultado vem ordenado do maior para o menor número de acidentes; em caso de empate, desempata por mortes e feridos graves, para a mesma consulta sempre devolver a mesma ordem.
+
+**Erros possíveis:**
+
+- `422`: `ano` ou `limit` fora da faixa aceita;
+- `503`: banco/dataset indisponível.
+
 ## `GET /api/v1/trechos-criticos`
 
 **O que faz:** lista trechos rodoviários agregados em segmentos de 10 km.
@@ -548,11 +543,18 @@ curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/rodovias?ano=2025&limi
 
 - `ano` — opcional;
 - `rodovia` — opcional; aceita `116` ou `BR-116`;
-- `limit` — 1 a 100.
+- `limit` — 1 a 100, padrão 20.
 
 ```bash
-curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/trechos-criticos?ano=2025&limit=10'
+curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/trechos-criticos?ano=2025&rodovia=BR-116&limit=10'
 ```
+
+O resultado vem ordenado pelo número de acidentes, com o mesmo desempate de `/rodovias`.
+
+**Erros possíveis:**
+
+- `422`: `ano` ou `limit` fora da faixa aceita;
+- `503`: banco/dataset indisponível.
 
 ## `GET /api/v1/acidentes`
 
@@ -561,17 +563,24 @@ curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/trechos-criticos?ano=2
 **Parâmetros:**
 
 - `ano` — opcional;
-- `municipio` — opcional;
+- `municipio` — opcional; nome do município, sem diferenciar maiúsculas de minúsculas (ex.: `Fortaleza`, `sobral`);
 - `limit` — 1 a 500, padrão 100;
-- `offset` — início da página, padrão 0.
+- `offset` — início da página, padrão 0 (para a página seguinte, some o `limit` ao `offset`).
 
 ```bash
 curl 'https://api-seguranca-viaria-ce.onrender.com/api/v1/acidentes?ano=2025&municipio=Fortaleza&limit=50'
 ```
 
+A ordem é fixa, então páginas diferentes não repetem nem pulam ocorrências.
+
+**Erros possíveis:**
+
+- `422`: `ano`, `limit` ou `offset` fora da faixa aceita;
+- `503`: banco/dataset indisponível.
+
 ## Como rodar localmente com Docker
 
-Primeiro gere `data/ceara_road_safety_api.duckdb`. Depois:
+Primeiro coloque o banco em `data/ceara_road_safety_api.duckdb`: baixe-o da release (passo 2 de "Rodar no seu computador") ou gere-o com `scripts/export_gold.py`. Depois:
 
 ```bash
 docker compose up --build -d
@@ -603,13 +612,29 @@ Os testes usam um DuckDB temporário criado exclusivamente para a suíte; os nú
 python -m pytest -q
 ```
 
-ou:
+ou, em Linux/macOS:
 
 ```bash
 make test
 ```
 
 Os testes cobrem os casos que funcionam e também os erros: parâmetro inválido (`422`), município ou rodovia que não existe (`404`), banco ou tabela ausente (`503`) e banco com colunas diferentes do esperado (`500`).
+
+### Testar a API que está no ar
+
+Os testes acima usam dados inventados. Para conferir a API **pública** de verdade, existe o script `scripts/testar_api.py`. Ele faz chamadas HTTP reais ao endereço público e confere o que `/docs` e este README prometem: rotas de consulta e de análise, filtros, paginação, erros `422`/`404`/`405`, CORS e tempo de resposta. Usa só a biblioteca padrão do Python, sem instalar nada além do próprio Python:
+
+```bash
+python scripts/testar_api.py
+```
+
+O Render gratuito "dorme" quando fica sem uso e a primeira resposta pode demorar quase um minuto. Se der erro de tempo esgotado, rode de novo com mais paciência:
+
+```bash
+python scripts/testar_api.py --timeout 90
+```
+
+No fim, o script mostra quantas verificações passaram e quantas falharam, e termina com código de saída `1` se alguma falhar. Rota que não existe na API pública aparece como "PULOU", não como falha.
 
 ## Evidência de alcance
 
@@ -668,7 +693,8 @@ O resultado mostra o total de consultas úteis, o período observado e quanto ca
 ├── evidencias/
 ├── scripts/
 │   ├── export_gold.py
-│   └── summarize_access.py
+│   ├── summarize_access.py
+│   └── testar_api.py
 ├── tests/
 ├── pytest.ini
 ├── README.md

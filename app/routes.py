@@ -1374,14 +1374,28 @@ def _weather_groups(conn, table: str, keys: dict[str, str], ano: int | None) -> 
 
 @router.get(
     "/analises/clima",
+    tags=["analises"],
     summary="Acidentes e gravidade por condição do tempo no momento da ocorrência (Open-Meteo)",
+    description=(
+        "Agrupa os acidentes pela condição do tempo estimada pelo Open-Meteo para o horário e o local "
+        "da ocorrência (`Céu limpo`, `Chuva`, `Garoa`...) e informa acidentes, mortes, feridos graves, "
+        "taxa de mortes e médias de temperatura, umidade, precipitação, visibilidade e vento. "
+        "Traz também um resumo `Sem precipitação` × `Com precipitação`. Sem `ano`, os anos são somados."
+    ),
 )
 def clima(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Ano de referência (ex.: 2025). Sem ele, os anos são somados."),
+    ] = None,
     ordenar_por: Annotated[
-        Literal["acidentes", "mortes", "mortes_por_100_acidentes"], Query()
+        Literal["acidentes", "mortes", "mortes_por_100_acidentes"],
+        Query(description="Critério de ordenação decrescente das condições do tempo."),
     ] = "acidentes",
-    min_acidentes: Annotated[int, Query(ge=1)] = 1,
+    min_acidentes: Annotated[
+        int,
+        Query(ge=1, description="Mínimo de acidentes por condição para entrar em `data` (padrão: 1)."),
+    ] = 1,
 ) -> dict:
     conn = connect()
     try:
@@ -1450,10 +1464,19 @@ def clima(
 
 @router.get(
     "/analises/veiculos",
+    tags=["analises"],
     summary="Tipos de veículo envolvidos nos acidentes e gravidade para os ocupantes",
+    description=(
+        "Lista os tipos de veículo envolvidos nos acidentes, com número de veículos, ocupantes, mortes, "
+        "feridos e taxas por 100 veículos. Mortes e feridos são contados entre os ocupantes de cada tipo. "
+        "Sem `ano`, os anos são somados."
+    ),
 )
 def veiculos(
-    ano: Annotated[int | None, Query(ge=2007, le=2100)] = None,
+    ano: Annotated[
+        int | None,
+        Query(ge=2007, le=2100, description="Ano de referência (ex.: 2025). Sem ele, os anos são somados."),
+    ] = None,
     ordenar_por: Annotated[
         Literal[
             "veiculos",
@@ -1462,10 +1485,16 @@ def veiculos(
             "mortes_por_100_veiculos",
             "feridos_graves_por_100_veiculos",
         ],
-        Query(),
+        Query(description="Critério de ordenação decrescente dos tipos de veículo."),
     ] = "veiculos",
-    min_veiculos: Annotated[int, Query(ge=1)] = 1,
-    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    min_veiculos: Annotated[
+        int,
+        Query(ge=1, description="Mínimo de veículos envolvidos por tipo para entrar em `data` (padrão: 1)."),
+    ] = 1,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=50, description="Quantidade máxima de tipos de veículo retornados (1 a 50, padrão: 20)."),
+    ] = 20,
 ) -> dict:
     conn = connect()
     try:

@@ -5,7 +5,7 @@
 - [x] `/health` retorna `status: ok`.
 - [x] `/docs` abre fora da rede/máquina da equipe.
 - [x] Rotas principais testadas em navegador/curl.
-- [x] `pytest -q` verde (`94 passed`).
+- [x] `pytest -q` verde (`125 passed`).
 - [x] CI verde.
 
 ## D3
