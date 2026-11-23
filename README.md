@@ -651,6 +651,8 @@ O teste de usabilidade deve ser feito **sem orientação** com pessoas externas 
 - **Tarefas:** consultar Fortaleza em 2025, identificar a rodovia com mais acidentes, localizar um trecho de 10 km e reconhecer uma limitação dos dados.
 - **Critérios previstos para o Marco 3:** pelo menos **três participantes externos com evidência primária verificável** e **duas melhorias ligadas a feedback real**, sem contar respostas de integrantes da equipe.
 - **Passo a passo:** [`docs/VALIDACAO-EXPLORAR.md`](docs/VALIDACAO-EXPLORAR.md).
+- **Controle de viés:** o protocolo define convite neutro, proibição de ajuda durante a tarefa, verificação dos resultados de referência, identificação da versão testada e separação entre facilidade percebida e acerto. A interface não deve ser simplificada artificialmente para um teste; foram retirados apenas os valores predefinidos de município que coincidiam com a primeira tarefa. As respostas coletadas antes e depois dessa revisão devem ser distinguidas.
+- **Registro de resultados:** [`docs/FICHA-RESULTADOS-USABILIDADE.md`](docs/FICHA-RESULTADOS-USABILIDADE.md). O modelo é propositalmente vazio até haver dados reais.
 
 As **respostas originais do Forms e a planilha vinculada devem permanecer privadas**. Para o repositório, compartilhar somente evidências anonimizadas, observando a autorização para citar comentários. Registrar data, identificação anônima, versão/commit testado e melhorias realizadas. **Não preencher respostas pelos participantes nem afirmar que uma meta foi cumprida sem os comprovantes.**
 

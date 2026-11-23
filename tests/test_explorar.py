@@ -56,3 +56,11 @@ def test_home_redireciona_navegadores_e_preserva_api():
     assert api.status_code == 200
     assert api.json()['explorar'] == '/explorar'
     assert client.get('/docs').status_code == 200
+
+def test_municipio_nao_vem_preenchido_com_a_primeira_tarefa():
+    """O exemplo Fortaleza era exatamente a primeira tarefa do estudo externo."""
+    app = FastAPI()
+    app.include_router(router)
+    html = TestClient(app).get('/explorar').text
+    assert 'id="busca-municipio"' in html
+    assert 'value="Fortaleza"' not in html
