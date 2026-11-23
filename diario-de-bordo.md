@@ -235,25 +235,29 @@
 
 ## Semana 11 — 27/11/2026
 
-> Entrega do Marco 3. Registro parcial de 23/11/2026.
+> Entrega do Marco 3. Registro parcial das atividades de 23/11/2026; complementar com resultados externos efetivamente obtidos até 27/11.
 
-**Quem trabalhou e quanto:** Victor Cavalcante Pena — 2h em 23/11. Registros dos demais integrantes pendentes de atualização individual.
+**Quem trabalhou e quanto:** Victor Cavalcante Pena — 2h já registradas em 23/11; as demais atividades do dia estão descritas abaixo, com tempo adicional ainda não apurado. Registros dos demais integrantes pendentes de atualização individual.
 
 **O que foi feito:**
 
-- **Victor:** implementação do script `scripts/auditar_evidencias.py`.
-- Criação de `tests/test_auditar_evidencias.py`.
-- Execução de 7 testes automatizados, todos aprovados.
-- Auditoria de 4 registros do `evidencias.csv`: 0 erros estruturais e 3 alertas de comprovação.
-- Publicação das alterações na branch `dev-victor` e verificação do GitHub Actions.
+- **Victor — auditoria:** implementação de `scripts/auditar_evidencias.py` e `tests/test_auditar_evidencias.py`; execução de 7 testes da auditoria, todos aprovados; verificação de 4 registros em `evidencias.csv` (0 erros estruturais e 3 alertas de comprovação).
+- **Victor — interface:** implementação da página de consulta guiada `/explorar`, nos arquivos `app/explorer.py` e `app/static/explorar.html`, permitindo pesquisar dados por município e ano, consultar rankings de rodovias e examinar trechos de 10 km usando as rotas JSON já existentes.
+- **Victor — acesso inicial:** alteração de `app/main.py` para redirecionar navegadores que solicitam HTML de `/` para `/explorar`, sem interromper a resposta JSON para clientes da API nem a documentação `/docs`.
+- **Victor — qualidade:** inclusão de `tests/test_explorar.py` e verificação local de **137 testes automatizados aprovados**, com um aviso de depreciação não bloqueante; fluxos de CI do GitHub Actions concluídos com sucesso.
+- **Victor — documentação:** criação de `docs/VALIDACAO-EXPLORAR.md` e atualização do `README.md` para destacar a interface pública, distinguir visitantes e desenvolvedores, explicar o acesso local e orientar a validação externa.
+- **Victor — preparação de avaliação:** criação de um Google Forms de usabilidade com planilha vinculada e simplificação do questionário para 7 perguntas após retorno de que a versão inicial estava longa. A pesquisa busca registrar tarefas concluídas, facilidade de uso e sugestões, sem coletar nome ou e-mail no formulário.
+- **Integração:** alterações da branch `dev-victor` revisadas no PR #5, integrado à `main` em 23/11/2026. A integração do código não comprova, por si só, o funcionamento no Render.
 
-**Obstáculo:** Os três testes externos anteriores possuem registros textuais, mas ainda precisam de comprovação primária verificável.
+**Obstáculos:** Os três testes externos anteriores têm registros textuais, mas ainda precisam de comprovação primária verificável. A interface recém-integrada requer conferência efetiva no Render antes de novos testes. O questionário inicial recebeu crítica por ser longo, levando à sua redução.
 
-**Contato com o público:** Nenhum novo contato externo realizado por Victor nesta atividade.
+**Contato com o público:** Em 23/11, Victor pediu a uma pessoa que conferisse a abertura do formulário; recebeu a observação de que ele estava muito longo, usada para simplificá-lo. **Esse retorno avalia o formulário, não constitui uma sessão concluída de teste da plataforma e não entra na contagem de participantes externos do Marco 3.**
 
-**Evidência coletada:** Código, testes, commits da branch `dev-victor` e execução do GitHub Actions.
+**Evidência coletada:** PR #5 (`https://github.com/ayurireiscentraldedados/interface-grafica/pull/5`), commits e execução do GitHub Actions; código e testes de `/explorar`; documentação no repositório; formulário de avaliação (`https://docs.google.com/forms/d/e/1FAIpQLScYO5dqllE4L5dsXwMkozAsHMAAKx6R3SFJlDqfUKCRIJj8Kg/viewform`). Os links e o formulário **não substituem as respostas primárias de participantes**, que devem ser coletadas, preservadas em acesso restrito e anonimizadas antes da divulgação.
 
-**Próxima semana:** Preparar a socialização e a autoavaliação individual.
+**Pendências antes de 27/11:** confirmar o deploy e realizar testes reais da interface, obter pelo menos 3 evidências primárias de pessoas externas, identificar e implementar pelo menos 2 melhorias comprovadamente motivadas por feedback externo, registrar as evidências em `evidencias.csv` e completar as horas efetivas de trabalho.
+
+**Próxima semana:** Preparar a socialização, consolidar os resultados do Marco 3 e finalizar a autoavaliação individual.
 
 ---
 
