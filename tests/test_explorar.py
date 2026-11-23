@@ -44,3 +44,15 @@ def test_rota_real_registrada_quando_dependencias_disponiveis():
     assert response.status_code == 200
     assert 'Acidentes nas rodovias do Ceará' in response.text
     assert '/explorar' not in app.openapi()['paths']  # não poluir o Swagger
+
+def test_home_redireciona_navegadores_e_preserva_api():
+    from app.main import app
+    client = TestClient(app)
+    browser = client.get('/', headers={'accept': 'text/html'}, follow_redirects=False)
+    assert browser.status_code == 307
+    assert browser.headers['location'] == '/explorar'
+    assert client.get('/explorar').status_code == 200
+    api = client.get('/', headers={'accept': 'application/json'})
+    assert api.status_code == 200
+    assert api.json()['explorar'] == '/explorar'
+    assert client.get('/docs').status_code == 200

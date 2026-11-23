@@ -235,7 +235,7 @@ A documentação interativa completa é gerada automaticamente pelo FastAPI em `
 
 ## `GET /`
 
-**O que faz:** apresenta nome, versão e caminhos principais do serviço.
+**O que faz:** abre `/explorar` quando acessado no navegador (requisição com `Accept: text/html`). Clientes HTTP que solicitam JSON continuam recebendo os caminhos da API, incluindo `explorar` e `docs`.
 
 **Exemplo:**
 
