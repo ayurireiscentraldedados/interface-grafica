@@ -237,7 +237,7 @@
 
 > Entrega do Marco 3. Registro parcial das atividades de 23/11/2026; complementar com resultados externos efetivamente obtidos até 27/11.
 
-**Quem trabalhou e quanto:** Victor Cavalcante Pena — 2h já registradas em 23/11; as demais atividades do dia estão descritas abaixo, com tempo adicional ainda não apurado. Registros dos demais integrantes pendentes de atualização individual.
+**Quem trabalhou e quanto:** Victor Cavalcante Pena — aproximadamente **5h em 23/11/2026** (2h já registradas na auditoria de evidências + cerca de 3h adicionais em interface, testes, documentação e preparação da avaliação externa, conforme estimativa do integrante). Registros dos demais integrantes pendentes de atualização individual.
 
 **O que foi feito:**
 
@@ -247,15 +247,15 @@
 - **Victor — qualidade:** inclusão de `tests/test_explorar.py` e verificação local de **137 testes automatizados aprovados**, com um aviso de depreciação não bloqueante; fluxos de CI do GitHub Actions concluídos com sucesso.
 - **Victor — documentação:** criação de `docs/VALIDACAO-EXPLORAR.md` e atualização do `README.md` para destacar a interface pública, distinguir visitantes e desenvolvedores, explicar o acesso local e orientar a validação externa.
 - **Victor — preparação de avaliação:** criação de um Google Forms de usabilidade com planilha vinculada e simplificação do questionário para 7 perguntas após retorno de que a versão inicial estava longa. A pesquisa busca registrar tarefas concluídas, facilidade de uso e sugestões, sem coletar nome ou e-mail no formulário.
-- **Integração:** alterações da branch `dev-victor` revisadas no PR #5, integrado à `main` em 23/11/2026. A integração do código não comprova, por si só, o funcionamento no Render.
+- **Integração e publicação:** alterações da branch `dev-victor` revisadas no PR #5, integrado à `main` em 23/11/2026. Victor informou que o deploy público da interface no Render já foi realizado; registrar captura/verificação datada da URL pública como comprovação de disponibilidade.
 
-**Obstáculos:** Os três testes externos anteriores têm registros textuais, mas ainda precisam de comprovação primária verificável. A interface recém-integrada requer conferência efetiva no Render antes de novos testes. O questionário inicial recebeu crítica por ser longo, levando à sua redução.
+**Obstáculos:** Os três testes externos anteriores têm registros textuais, mas ainda precisam de comprovação primária verificável. Embora o deploy no Render tenha sido informado como concluído, a equipe ainda deve guardar uma evidência técnica datada do funcionamento público. O questionário inicial recebeu crítica por ser longo, levando à sua redução.
 
 **Contato com o público:** Em 23/11, Victor pediu a uma pessoa que conferisse a abertura do formulário; recebeu a observação de que ele estava muito longo, usada para simplificá-lo. **Esse retorno avalia o formulário, não constitui uma sessão concluída de teste da plataforma e não entra na contagem de participantes externos do Marco 3.**
 
 **Evidência coletada:** PR #5 (`https://github.com/ayurireiscentraldedados/interface-grafica/pull/5`), commits e execução do GitHub Actions; código e testes de `/explorar`; documentação no repositório; formulário de avaliação (`https://docs.google.com/forms/d/e/1FAIpQLScYO5dqllE4L5dsXwMkozAsHMAAKx6R3SFJlDqfUKCRIJj8Kg/viewform`). Os links e o formulário **não substituem as respostas primárias de participantes**, que devem ser coletadas, preservadas em acesso restrito e anonimizadas antes da divulgação.
 
-**Pendências antes de 27/11:** confirmar o deploy e realizar testes reais da interface, obter pelo menos 3 evidências primárias de pessoas externas, identificar e implementar pelo menos 2 melhorias comprovadamente motivadas por feedback externo, registrar as evidências em `evidencias.csv` e completar as horas efetivas de trabalho.
+**Pendências antes de 27/11:** arquivar a comprovação do deploy público, realizar testes reais da interface, obter pelo menos 3 evidências primárias de pessoas externas, identificar e implementar pelo menos 2 melhorias comprovadamente motivadas por feedback externo e registrar as evidências em `evidencias.csv`.
 
 **Próxima semana:** Preparar a socialização, consolidar os resultados do Marco 3 e finalizar a autoavaliação individual.
 
