@@ -235,19 +235,25 @@
 
 ## Semana 11 — 27/11/2026
 
-> Entrega do **Marco 3**.
+> Entrega do Marco 3. Registro parcial de 23/11/2026.
 
-**Quem trabalhou e quanto:** [PREENCHER NA SEMANA]
+**Quem trabalhou e quanto:** Victor Cavalcante Pena — 2h em 23/11. Registros dos demais integrantes pendentes de atualização individual.
 
-**O que foi feito:** [PREENCHER NA SEMANA]
+**O que foi feito:**
 
-**Obstáculo:** [PREENCHER NA SEMANA]
+- **Victor:** implementação do script `scripts/auditar_evidencias.py`.
+- Criação de `tests/test_auditar_evidencias.py`.
+- Execução de 7 testes automatizados, todos aprovados.
+- Auditoria de 4 registros do `evidencias.csv`: 0 erros estruturais e 3 alertas de comprovação.
+- Publicação das alterações na branch `dev-victor` e verificação do GitHub Actions.
 
-**Contato com o público:** [PREENCHER NA SEMANA]
+**Obstáculo:** Os três testes externos anteriores possuem registros textuais, mas ainda precisam de comprovação primária verificável.
 
-**Evidência coletada:** [PREENCHER NA SEMANA]
+**Contato com o público:** Nenhum novo contato externo realizado por Victor nesta atividade.
 
-**Próxima semana:** ensaiar socialização e preparar autoavaliações individuais.
+**Evidência coletada:** Código, testes, commits da branch `dev-victor` e execução do GitHub Actions.
+
+**Próxima semana:** Preparar a socialização e a autoavaliação individual.
 
 ---
 

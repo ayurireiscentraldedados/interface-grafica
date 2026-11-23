@@ -1,47 +1,50 @@
-# API Segurança Viária CE
+# Segurança Viária CE
 
-API pública para consultar, de forma simples, indicadores de acidentes em rodovias federais no Ceará sem exigir que a pessoa usuária baixe e relacione manualmente bases da PRF, IBGE e Open-Meteo.
+**Dados de acidentes nas rodovias federais do Ceará, com consulta simples no navegador e API pública para reutilização.** A iniciativa acadêmica da UFC, na Trilha A de dados abertos, utiliza como infraestrutura a camada Gold do **Ceará Road Safety Data Platform**, que prepara dados da PRF, IBGE e Open-Meteo.
 
-> Produto da Trilha A — API pública de dados abertos. A API reutiliza como infraestrutura de dados a camada Gold do projeto preexistente **Ceará Road Safety Data Platform**. O trabalho específico desta ação de extensão é a disponibilização pública, documentação, testes, validação com público externo e evolução desta API.
+## Comece por aqui
+
+| Objetivo | Acesso |
+| :-- | :-- |
+| **Consultar sem programar**: município, rodovias e trechos de 10 km | [Interface /explorar](https://api-seguranca-viaria-ce.onrender.com/explorar) |
+| **Explorar os endpoints JSON** e seus parâmetros | [Swagger /docs](https://api-seguranca-viaria-ce.onrender.com/docs) |
+| **Conferir o estado da API e do banco** | [Status /health](https://api-seguranca-viaria-ce.onrender.com/health) |
+| **Sugerir melhorias ou comunicar problemas** | [GitHub Issues](https://github.com/ayurireiscentraldedados/interface-grafica/issues) |
+
+**Sobre a publicação:** a interface `/explorar` e o redirecionamento da página inicial fazem parte do código desta versão. Para aparecerem no Render, a alteração precisa ser integrada à branch implantada e o deploy precisa terminar. Confirme a URL antes de convidar pessoas externas para testar.
 
 ## Para quem é
 
-O produto foi pensado principalmente para:
+Estudantes, jornalistas de dados, pesquisadores e pessoas interessadas em mobilidade e segurança viária. A interface visual não exige cadastro, código IBGE, comandos de terminal ou conhecimento de JSON; os endpoints técnicos continuam disponíveis para integração com outros sistemas.
 
-- estudantes que precisam trabalhar com dados públicos em disciplinas, pesquisas e projetos;
-- pesquisadores e profissionais interessados em mobilidade e segurança viária;
-- jornalistas de dados que precisam consultar recortes municipais e rodoviários sem preparar toda a base bruta;
-- desenvolvedores que queiram consumir indicadores de segurança viária em outros sistemas.
+## Funcionalidades implementadas
 
-## Estado atual
+- **Consulta guiada em `/explorar`:** busca de municípios por nome, seleção de ano, indicadores de acidentes, mortes e feridos graves, ranking de rodovias e lista de trechos de 10 km com mais ocorrências.
+- **API em `/api/v1`:** datasets, municípios, indicadores municipais, rodovias, trechos críticos e acidentes.
+- **Análises agregadas:** risco por 100 mil habitantes, circunstâncias, perfil de rodovias, evolução temporal, dia e hora, clima, veículos e regiões do IBGE.
+- **Documentação interativa**, testes automatizados no GitHub Actions, verificação HTTP do serviço publicado e registros de acesso com data/hora, método, rota, status e duração (sem guardar IP, nome ou e-mail no log da aplicação).
 
-- A API está **no ar**: https://api-seguranca-viaria-ce.onrender.com (conferida em 16/11/2026). Qualquer pessoa consulta sem cadastro e sem instalar nada.
-- Os dados publicados são o pacote `data-2026-08-v1`: 2024 e 2025 completos, e 2026 parcial, até 31/08/2026.
-- A documentação interativa, onde dá para testar cada rota no navegador, fica em `/docs`, organizada nas seções `meta`, `consultas` e `analises`, com guia rápido de uso ("Como começar sem ajuda") e exemplos nos parâmetros (`ibge_code=2304400`, formato `116` ou `BR-116`).
-- Rotas de consulta: lista de datasets, municípios, indicadores de um município, rodovias, trechos críticos e acidentes.
-- Oito rotas de análise: o ranking de municípios por habitante, as circunstâncias dos acidentes fatais, o perfil de cada rodovia, a evolução no tempo, o mapa de calor por dia da semana e horário, os acidentes por condição do tempo, os tipos de veículo envolvidos e a comparação entre regiões do IBGE.
-- Os testes automáticos rodam no GitHub a cada envio de código.
-- Para conferir de uma vez só se a API pública está respondendo bem, rode `python scripts/testar_api.py` (veja "Testar a API que está no ar").
-- A API aceita chamadas feitas direto do navegador, a partir de qualquer site (CORS aberto para consultas `GET`), então dá para usá-la em páginas e painéis sem servidor próprio.
-- A API guarda só data e hora, método, caminho, status e tempo de cada consulta. Não guarda nome, e-mail nem IP.
+A interface visual consulta os **mesmos endpoints JSON**: não mantém uma segunda base nem cria indicadores independentes.
 
-### Endereços
+### O que acontece ao abrir a página inicial?
 
-- Endereço público: https://api-seguranca-viaria-ce.onrender.com
-- Documentação interativa: https://api-seguranca-viaria-ce.onrender.com/docs
-- Status da API: https://api-seguranca-viaria-ce.onrender.com/health
-- Monitoramento de disponibilidade: UptimeRobot, com verificação do `/health` a cada 5 minutos
-- Repositório da equipe: https://github.com/ayurireiscentraldedados/interface-grafica
-- Dados usados pela API (arquivo da release): https://github.com/ayurireiscentraldedados/interface-grafica/releases/download/data-2026-08-v1/ceara_road_safety_api.duckdb
-- No seu computador: `http://127.0.0.1:8000`, com a documentação em `http://127.0.0.1:8000/docs`. No Windows, prefira `127.0.0.1` a `localhost`: no PowerShell a resposta chega em 0,06 s, contra mais de 2 s com `localhost`.
+- **Navegador:** se enviar `Accept: text/html`, `GET /` responde com redirecionamento **307** para `/explorar`.
+- **Cliente de API:** se solicitar JSON, `GET /` devolve os caminhos da interface, do Swagger, do status e da API.
+- As rotas `/docs`, `/health` e `/api/v1/...` continuam disponíveis.
+
+### Dados e limites
+
+O pacote atualmente documentado é [`data-2026-08-v1`](https://github.com/ayurireiscentraldedados/interface-grafica/releases/tag/data-2026-08-v1), com **2024 e 2025 completos** e **2026 parcial até 31/08/2026**. Não se trata de monitoramento em tempo real.
+
+O recorte principal inclui acidentes **registrados pela PRF em rodovias federais** — não todos os acidentes do Ceará. Os rankings apresentam **contagens observadas**, não probabilidade de acidente nem risco comparável por viagem, pois não há denominadores de tráfego. Veja as limitações detalhadas abaixo.
 
 ## Como usar agora
 
-### Jeito mais rápido: usar a API que já está no ar
+### Consultas técnicas: Swagger, terminal e Python
 
-Não precisa instalar nada nem criar conta. Escolha o jeito que preferir.
+Para consultar sem programação, use `/explorar`. Os exemplos abaixo servem a quem quer ler os dados em JSON ou integrar a API a outro programa.
 
-**No navegador.** Abra https://api-seguranca-viaria-ce.onrender.com/docs, clique numa rota, depois em "Try it out" e em "Execute". Também dá para colar o endereço direto na barra do navegador, por exemplo:
+**No navegador (Swagger).** Abra https://api-seguranca-viaria-ce.onrender.com/docs, escolha uma rota, clique em "Try it out" e em "Execute". Você também pode acessar uma URL diretamente, por exemplo:
 
 ```text
 https://api-seguranca-viaria-ce.onrender.com/api/v1/rodovias?ano=2025&limit=5
@@ -97,7 +100,8 @@ Nos passos seguintes, onde aparecer `python` ou `uvicorn`, use `.venv\Scripts\py
 O banco já tratado (cerca de 3 MB) está publicado na release `data-2026-08-v1` do GitHub. Baixe para a pasta `data/`:
 
 ```bash
-curl -L -o data/ceara_road_safety_api.duckdb \
+mkdir -p data
+curl -fL --show-error -o data/ceara_road_safety_api.duckdb \
   https://github.com/ayurireiscentraldedados/interface-grafica/releases/download/data-2026-08-v1/ceara_road_safety_api.duckdb
 ```
 
@@ -122,7 +126,13 @@ make export SOURCE_DB=../ceara-road-safety-data-platform/data/warehouse/ceara_ro
 uvicorn app.main:app --reload --port 8000
 ```
 
-**4. Testar uma consulta**
+**4. Abrir a interface e testar uma consulta**
+
+- Interface simples: http://127.0.0.1:8000/explorar
+- Swagger: http://127.0.0.1:8000/docs
+- Status: http://127.0.0.1:8000/health
+
+Para consultar diretamente os dados JSON:
 
 ```bash
 curl 'http://127.0.0.1:8000/api/v1/municipios?ano=2025&limit=2'
@@ -221,7 +231,7 @@ A documentação interativa completa é gerada automaticamente pelo FastAPI em `
 
 ## `GET /`
 
-**O que faz:** apresenta nome, versão e caminhos principais do serviço.
+**O que faz:** abre `/explorar` quando acessado no navegador (requisição com `Accept: text/html`). Clientes HTTP que solicitam JSON continuam recebendo os caminhos da API, incluindo `explorar` e `docs`.
 
 **Exemplo:**
 
@@ -592,11 +602,7 @@ Confira:
 curl 'http://127.0.0.1:8000/health'
 ```
 
-Documentação:
-
-```text
-http://127.0.0.1:8000/docs
-```
+Abra a interface em `http://127.0.0.1:8000/explorar` ou a documentação técnica em `http://127.0.0.1:8000/docs`.
 
 Parar:
 
@@ -618,7 +624,7 @@ ou, em Linux/macOS:
 make test
 ```
 
-Os testes cobrem os casos que funcionam e também os erros: parâmetro inválido (`422`), município ou rodovia que não existe (`404`), banco ou tabela ausente (`503`) e banco com colunas diferentes do esperado (`500`).
+Os testes cobrem os casos que funcionam e também os erros: parâmetro inválido (`422`), município ou rodovia que não existe (`404`), banco ou tabela ausente (`503`) e banco com colunas diferentes do esperado (`500`). Os testes de `tests/test_explorar.py` verificam a página HTML, elementos básicos de acessibilidade, referências às rotas JSON e as respostas de `/` para navegador e cliente JSON. **Testes automatizados não substituem testes externos reais de usabilidade.**
 
 ### Testar a API que está no ar
 
@@ -635,6 +641,18 @@ python scripts/testar_api.py --timeout 90
 ```
 
 No fim, o script mostra quantas verificações passaram e quantas falharam, e termina com código de saída `1` se alguma falhar. Rota que não existe na API pública aparece como "PULOU", não como falha.
+
+## Validação com público externo — Marco 3
+
+O teste de usabilidade deve ser feito **sem orientação** com pessoas externas à equipe, principalmente para verificar se alguém sem experiência com APIs consegue encontrar e interpretar informações na interface.
+
+- **Site a testar:** https://api-seguranca-viaria-ce.onrender.com/explorar (confirmar previamente que o deploy publicado está atualizado).
+- **[Formulário curto de usabilidade](https://docs.google.com/forms/d/e/1FAIpQLScYO5dqllE4L5dsXwMkozAsHMAAKx6R3SFJlDqfUKCRIJj8Kg/viewform):** registra conclusão das tarefas, nota de facilidade e sugestões.
+- **Tarefas:** consultar Fortaleza em 2025, identificar a rodovia com mais acidentes, localizar um trecho de 10 km e reconhecer uma limitação dos dados.
+- **Critérios previstos para o Marco 3:** pelo menos **três participantes externos com evidência primária verificável** e **duas melhorias ligadas a feedback real**, sem contar respostas de integrantes da equipe.
+- **Passo a passo:** [`docs/VALIDACAO-EXPLORAR.md`](docs/VALIDACAO-EXPLORAR.md).
+
+As **respostas originais do Forms e a planilha vinculada devem permanecer privadas**. Para o repositório, compartilhar somente evidências anonimizadas, observando a autorização para citar comentários. Registrar data, identificação anônima, versão/commit testado e melhorias realizadas. **Não preencher respostas pelos participantes nem afirmar que uma meta foi cumprida sem os comprovantes.**
 
 ## Evidência de alcance
 
@@ -686,16 +704,24 @@ O resultado mostra o total de consultas úteis, o período observado e quanto ca
 ├── app/
 │   ├── config.py
 │   ├── db.py
-│   ├── main.py
-│   └── routes.py
-├── data/
+│   ├── explorer.py                # Página /explorar
+│   ├── main.py                    # FastAPI e rota /
+│   ├── routes.py                  # API JSON /api/v1
+│   └── static/
+│       └── explorar.html         # Interface de consulta
+├── data/                          # DuckDB local
 ├── docs/
-├── evidencias/
+│   └── VALIDACAO-EXPLORAR.md      # Protocolo de teste externo
+├── evidencias/                    # Evidências compartilháveis e anonimizadas
 ├── scripts/
+│   ├── auditar_evidencias.py
 │   ├── export_gold.py
+│   ├── instalar_explorar.py
 │   ├── summarize_access.py
 │   └── testar_api.py
 ├── tests/
+│   ├── test_explorar.py
+│   └── ...                        # Outros testes da API e da auditoria
 ├── pytest.ini
 ├── README.md
 ├── CONTRIBUTING.md

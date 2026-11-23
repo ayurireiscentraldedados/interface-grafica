@@ -6,11 +6,13 @@ import time
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import access_log_path, db_path
 from app.db import TABLES, connect, table_exists
 from app.routes import router
+from app.explorer import router as explorer_router
 
 # O registro padrão do uvicorn escreve o IP e os parâmetros de cada consulta. A API usa só o registro abaixo.
 logging.getLogger("uvicorn.access").disabled = True
@@ -91,10 +93,14 @@ async def access_log(request: Request, call_next):
 
 
 @app.get("/", tags=["meta"])
-def root() -> dict:
+def root(request: Request):
+    # Navegadores recebem a interface simples; clientes da API continuam recebendo JSON.
+    if "text/html" in request.headers.get("accept", "").lower():
+        return RedirectResponse(url="/explorar", status_code=307)
     return {
         "name": "API Segurança Viária CE",
         "version": "0.1.0",
+        "explorar": "/explorar",
         "docs": "/docs",
         "health": "/health",
         "api": "/api/v1",
@@ -126,3 +132,4 @@ def health() -> dict:
 
 
 app.include_router(router)
+app.include_router(explorer_router)
