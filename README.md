@@ -35,6 +35,20 @@ O produto foi pensado principalmente para:
 - Dados usados pela API (arquivo da release): https://github.com/ayurireiscentraldedados/interface-grafica/releases/download/data-2026-08-v1/ceara_road_safety_api.duckdb
 - No seu computador: `http://127.0.0.1:8000`, com a documentação em `http://127.0.0.1:8000/docs`. No Windows, prefira `127.0.0.1` a `localhost`: no PowerShell a resposta chega em 0,06 s, contra mais de 2 s com `localhost`.
 
+## Para quem não programa: consulta guiada
+
+Acesse **`/explorar`** na API pública para pesquisar acidentes por município,
+ver as rodovias com mais registros e identificar trechos de 10 km.
+A página funciona em celular ou computador, sem cadastro, código IBGE,
+comandos de terminal ou conhecimento de JSON.
+
+- Interface pública (após o deploy): https://api-seguranca-viaria-ce.onrender.com/explorar
+- API técnica e documentação Swagger: https://api-seguranca-viaria-ce.onrender.com/docs
+- O ano de 2026 está disponível apenas até 31/08/2026 no pacote atualmente publicado.
+- O recorte cobre acidentes registrados pela PRF em rodovias federais; maiores
+  contagens não significam necessariamente maior risco.
+- A interface usa as rotas JSON já existentes; ela não cria dados novos.
+
 ## Como usar agora
 
 ### Jeito mais rápido: usar a API que já está no ar

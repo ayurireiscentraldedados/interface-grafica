@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import access_log_path, db_path
 from app.db import TABLES, connect, table_exists
 from app.routes import router
+from app.explorer import router as explorer_router
 
 # O registro padrão do uvicorn escreve o IP e os parâmetros de cada consulta. A API usa só o registro abaixo.
 logging.getLogger("uvicorn.access").disabled = True
@@ -126,3 +127,4 @@ def health() -> dict:
 
 
 app.include_router(router)
+app.include_router(explorer_router)

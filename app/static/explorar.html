@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Consulte acidentes nas rodovias federais do Ceará sem precisar entender programação.">
+  <title>Explorar dados | Segurança Viária CE</title>
+  <style>
+  :root {
+    color-scheme: light;
+    --ink: #202a32;
+    --muted: #586573;
+    --accent: #245c78;
+    --accent-hover: #194861;
+    --border: #d9e0e5;
+    --background: #f8fafb;
+    --white: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--background); color: var(--ink); line-height: 1.5; font-size: 16px; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--accent-hover); }
+  :focus-visible { outline: 3px solid #bd782f; outline-offset: 3px; }
+  [hidden] { display: none !important; }
+  .skip { position: absolute; top: -90px; left: 16px; padding: 10px 14px; background: #fff; z-index: 10; }
+  .skip:focus { top: 8px; }
+  .wrap { max-width: 940px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+  header { background: #fff; border-bottom: 1px solid var(--border); }
+  .top { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+  .brand { display: inline-block; font-size: 16px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  .brand-mark { display: none; }
+  .navlink { color: #4e5b67; font-size: 14px; text-decoration: none; }
+  .navlink:hover { text-decoration: underline; }
+  .top nav { display: flex; align-items: center; gap: 22px; }
+  .hero { background: var(--background); padding: 36px 0 25px; }
+  .hero h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 720; line-height: 1.22; margin: 0 0 9px; letter-spacing: -.025em; }
+  .hero p.lead { margin: 0; max-width: 710px; color: var(--muted); font-size: 16px; }
+  .eyebrow, .tagline { display: none; }
+  .main { margin-top: 0; padding-bottom: 25px; }
+  .panel { background: #fff; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+  .panel-top { padding: 22px 24px 7px; }
+  .panel-top h2 { margin: 0 0 3px; font-size: 19px; font-weight: 690; }
+  .panel-top p { margin: 0; font-size: 14px; color: var(--muted); }
+  .tabs { display: flex; gap: 0; padding: 0 20px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab { border: 0; border-bottom: 3px solid transparent; padding: 15px 15px 12px; font: inherit; font-size: 14px; font-weight: 550; background: transparent; color: #53616c; cursor: pointer; white-space: nowrap; }
+  .tab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .tab:hover { background: #f5f8fa; }
+  .form { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; padding: 23px 24px 24px; }
+  .field { display: flex; flex-direction: column; min-width: 0; gap: 6px; flex: 1 1 210px; }
+  .field label { font-weight: 630; font-size: 14px; }
+  .field select, .field input { font: inherit; font-size: 15px; min-height: 44px; width: 100%; border: 1px solid #aebbc5; border-radius: 5px; padding: 8px 11px; background: white; color: var(--ink); }
+  .field select:disabled, .field input:disabled { background: #f0f2f4; }
+  .city-controls { display: block; }
+  .help { color: var(--muted); font-size: 12px; margin: 0; }
+  .cta { font: inherit; font-weight: 640; font-size: 15px; padding: 9px 21px; min-height: 44px; border: 1px solid var(--accent); border-radius: 5px; background: var(--accent); color: #fff; cursor: pointer; }
+  .cta:hover { background: var(--accent-hover); }
+  .cta:disabled { opacity: .55; cursor: wait; }
+  .notice { display: block; padding: 12px 24px; border-top: 1px solid var(--border); background: #f9fafb; color: #586573; font-size: 13px; }
+  .notice b { font-weight: 650; }
+  #status { font-size: 14px; color: #4b5b69; margin: 14px 0 0; padding: 10px 13px; background: #f0f4f7; border-left: 3px solid #a8b7c2; }
+  #status[data-tone="error"] { background: #fff6f3; color: #8b3520; border-color: #c96d50; }
+  #status[data-tone="success"] { background: #f1f7f3; color: #315f3d; border-color: #84ac89; }
+  .results { margin-top: 31px; }
+  .results-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 15px; }
+  .results-head h2 { font-size: 21px; margin: 0 0 3px; font-weight: 720; }
+  .results-head p { color: var(--muted); margin: 0; font-size: 13px; }
+  .data-link { font-size: 13px; white-space: nowrap; }
+  .cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+  .metric { background: white; border: 1px solid var(--border); border-radius: 5px; padding: 17px; min-width: 0; }
+  .metric .label { display: block; font-weight: 580; color: #4b5d68; font-size: 13px; }
+  .metric .value { display: block; font-size: 29px; font-weight: 750; line-height: 1.2; margin: 9px 0; letter-spacing: -.02em; overflow-wrap: anywhere; }
+  .metric .explain { display: block; font-size: 12px; color: var(--muted); }
+  .analysis { margin-top: 12px; background: #fff; border: 1px solid var(--border); border-radius: 5px; padding: 15px 17px; }
+  .analysis h3 { font-size: 14px; font-weight: 700; margin: 0 0 5px; }
+  .analysis p { color: #4c5965; font-size: 14px; margin: 0; }
+  .ranking { border: 1px solid var(--border); border-radius: 5px; background: white; overflow: hidden; }
+  .rank-item { padding: 13px 16px; background: #fff; }
+  .rank-item + .rank-item { border-top: 1px solid var(--border); }
+  .rank-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .rank-title { font-size: 15px; font-weight: 680; }
+  .rank-meta { font-size: 12px; color: var(--muted); margin: 3px 0 0; }
+  .rank-value { text-align: right; font-size: 20px; font-weight: 700; white-space: nowrap; }
+  .rank-value small { display: block; font-size: 12px; color: var(--muted); font-weight: 450; }
+  .track { display: none; }
+  .empty { background: white; border: 1px solid var(--border); border-radius: 5px; padding: 20px; color: var(--muted); }
+  .empty strong { display: block; color: var(--ink); }
+  .footnote { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+  .info-grid { border-top: 1px solid var(--border); margin-top: 32px; padding-top: 21px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .info { padding: 0; }
+  .info h2 { font-size: 16px; margin: 0 0 9px; font-weight: 690; }
+  .info p { font-size: 13px; line-height: 1.65; color: var(--muted); margin: 0 0 9px; }
+  .info a { font-size: 13px; }
+  footer { border-top: 1px solid var(--border); background: #fff; padding: 19px 0; font-size: 12px; color: var(--muted); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  @media(max-width: 700px) {
+    .wrap { padding-left: 17px; padding-right: 17px; }
+    .hero { padding: 27px 0 22px; }
+    .top { min-height: 58px; }
+    .top nav { gap: 13px; }
+    .top nav .navlink:first-child { display: none; }
+    .brand { white-space: nowrap; }
+    .navlink { font-size: 12px; }
+    .panel-top { padding: 17px 16px 8px; }
+    .tabs { padding: 0 6px; }
+    .tab { padding: 12px 9px 10px; font-size: 13px; }
+    .form { padding: 17px 16px 18px; }
+    .field { flex-basis: 100%; }
+    .cta { width: 100%; }
+    .notice { padding: 11px 16px; }
+    .cards { grid-template-columns: 1fr; }
+    .metric { padding: 14px 16px; }
+    .metric .value { margin: 5px 0; font-size: 25px; }
+    .results-head { flex-direction: column; align-items: flex-start; }
+    .info-grid { display: block; }
+    .info + .info { margin-top: 22px; }
+  }
+  @media(prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <a href="#principal" class="skip">Pular para o conteúdo</a>
+  <header>
+    <div class="wrap top">
+      <a href="/explorar" class="brand" aria-label="Segurança Viária CE, página inicial">Segurança Viária CE</a>
+      <nav aria-label="Links principais"><a class="navlink" href="#sobre">Sobre os dados</a><a class="navlink" href="/docs">Documentação da API</a></nav>
+    </div>
+  </header>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+
+      <h1 id="hero-title">Acidentes nas rodovias do Ceará</h1>
+      <p class="lead">Consulte os acidentes registrados pela Polícia Rodoviária Federal. Escolha um município, uma rodovia ou veja os trechos com mais ocorrências.</p>
+
+    </div>
+  </section>
+  <main id="principal" class="wrap main">
+    <section class="panel" aria-labelledby="panel-title">
+      <div class="panel-top"><h2 id="panel-title">Consultar os dados</h2><p>Selecione uma opção abaixo. A consulta é gratuita e não exige cadastro.</p></div>
+      <div class="tabs" role="tablist" aria-label="Tipos de consulta">
+        <button class="tab" id="tab-municipios" type="button" role="tab" aria-selected="true" aria-controls="consulta" data-tab="municipios">Municípios</button>
+        <button class="tab" id="tab-rodovias" type="button" role="tab" aria-selected="false" aria-controls="consulta" tabindex="-1" data-tab="rodovias">Rodovias</button>
+        <button class="tab" id="tab-trechos" type="button" role="tab" aria-selected="false" aria-controls="consulta" tabindex="-1" data-tab="trechos">Trechos de 10 km</button>
+      </div>
+      <form id="consulta" class="form">
+        <div class="field" id="campo-municipio">
+          <label for="busca-municipio">Município</label>
+          <div class="city-controls">
+            <input id="busca-municipio" type="text" list="municipio" value="Fortaleza" autocomplete="off" placeholder="Digite o nome do município" aria-describedby="ajuda-municipio" required>
+            <datalist id="municipio"></datalist>
+          </div>
+          <p class="help" id="ajuda-municipio">Digite ou escolha um município da lista.</p>
+        </div>
+        <div class="field"><label for="ano">Ano dos registros</label><select id="ano" required><option value="2025" selected>2025 — completo</option><option value="2024">2024 — completo</option><option value="2026">2026 — parcial*</option></select></div>
+        <button class="cta" id="consultar" type="submit">Consultar</button>
+      </form>
+      <div class="notice">A consulta cobre apenas <b>rodovias federais</b>, não ruas da cidade. Os dados de <b>2026</b> vão até <b>31/08/2026</b>.</div>
+    </section>
+
+    <div id="status" role="status" aria-live="polite" aria-atomic="true">Carregando municípios...</div>
+    <section class="results" id="resultados" aria-labelledby="titulo-resultados" hidden>
+      <div class="results-head"><div><h2 id="titulo-resultados">Resultados</h2><p id="subtitulo-resultados"></p></div><a id="link-fonte" class="data-link" href="/docs" target="_blank" rel="noopener noreferrer">Ver resposta da API</a></div>
+      <div id="conteudo-resultados"></div>
+      <p class="footnote" id="nota-resultados"></p>
+    </section>
+
+    <section class="info-grid" id="sobre" aria-label="Entenda os dados">
+      <article class="info"><h2>Fonte dos dados</h2><p>Os registros de acidentes são da Polícia Rodoviária Federal (PRF), tratados e publicados pela equipe do projeto. Dados populacionais do IBGE ajudam a contextualizar algumas análises.</p><p>O recorte publicado abrange 2024, 2025 e parte de 2026. O serviço consulta uma base preparada anteriormente, não registros em tempo real.</p><a href="https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf" target="_blank" rel="noopener noreferrer">Fonte oficial: PRF</a></article>
+      <article class="info"><h2>Como interpretar</h2><p>Mais acidentes registrados não significam necessariamente maior risco: rodovias mais movimentadas também podem registrar mais ocorrências. Não são previsões de acidentes futuros.</p><p>Os dados de 2026 são parciais. Evite comparar seu total diretamente com um ano completo.</p><a href="/docs">Documentação técnica</a></article>
+    </section>
+  </main>
+  <footer><div class="wrap"><span>Segurança Viária CE · Projeto acadêmico de dados abertos</span><span>Dados da PRF · recorte: rodovias federais</span></div></footer>
+  <script>
+  (() => {
+    'use strict';
+    const API = location.protocol === 'file:' ? 'https://api-seguranca-viaria-ce.onrender.com' : location.origin;
+    const el = id => document.getElementById(id);
+    const fmt = n => typeof n === 'number' && Number.isFinite(n) ? new Intl.NumberFormat('pt-BR').format(n) : (n !== null && n !== undefined && n !== '' && !Number.isNaN(Number(n)) ? new Intl.NumberFormat('pt-BR').format(Number(n)) : 'Não disponível');
+    const fold = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const status = (msg,tone) => { const e = el('status'); e.hidden = false; e.dataset.tone = tone || 'normal'; e.textContent = msg; };
+    let tab = 'municipios'; let cidades = []; let seq = 0; let controller = null;
+    const names = { municipios:'Dados do município',rodovias:'Rodovias com mais acidentes',trechos:'Trechos de 10 km com mais acidentes' };
+    const note = ano => ano === '2026' ? 'Atenção: os dados de 2026 vão somente até 31/08/2026. Não compare com anos completos como se fossem períodos iguais.' : 'Os números representam acidentes registrados pela PRF em rodovias federais. Não medem o risco por viagem ou veículo.';
+    function clear(node) { node.replaceChildren(); }
+    function node(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = String(txt); return e; }
+    function loading(active) { el('consultar').disabled = active; el('consultar').textContent = active ? 'Consultando...' : 'Consultar'; }
+    async function getJson(path, opts={}) {
+      const url = new URL(API + path);
+      const response = await fetch(url.toString(), { headers:{Accept:'application/json'}, signal:opts.signal });
+      if (!response.ok) {
+        if (response.status === 404) throw new Error('Não encontramos registros para essa seleção. Tente outro ano ou município.');
+        if (response.status === 503) throw new Error('Os dados estão temporariamente indisponíveis. Tente novamente mais tarde.');
+        throw new Error('Não foi possível consultar os dados agora (HTTP ' + response.status + ').');
+      }
+      return response.json();
+    }
+    function populate() {
+      const list = el('municipio');
+      clear(list);
+      for (const c of cidades) {
+        const option = node('option');
+        option.value = c.municipality;
+        list.append(option);
+      }
+    }
+    function cityChoice() {
+      const typed = fold(el('busca-municipio').value.trim());
+      return cidades.find(c => fold(c.municipality) === typed) || null;
+    }
+    async function loadCities() {
+      try {
+        const payload = await getJson('/api/v1/municipios?ano=2025&limit=500');
+        cidades=Array.isArray(payload.data)?payload.data.filter(c=>c.ibge_code && c.municipality):[];
+        if (!cidades.length) throw new Error('A lista de municípios está vazia.');
+        cidades.sort((a,b)=>a.municipality.localeCompare(b.municipality,'pt-BR'));
+        populate();
+        el('consultar').disabled = false;
+        el('status').hidden = true;
+      } catch (err) {
+        status('Não conseguimos carregar a lista de municípios. ' + (err.name==='TypeError'?'Verifique a conexão e tente atualizar a página.':err.message), 'error');
+        el('consultar').disabled = tab === 'municipios';
+      }
+    }
+    function activate(value,focus=false) {
+      if (!names[value]) return;
+      if (controller) controller.abort();
+      seq += 1;
+      loading(false);
+      tab=value;
+      for (const b of document.querySelectorAll('[data-tab]')) { const active=b.dataset.tab===tab; b.setAttribute('aria-selected',String(active)); b.tabIndex=active?0:-1; if (active && focus) b.focus(); }
+      el('campo-municipio').hidden=tab!=='municipios';
+      el('resultados').hidden=true;
+      el('consultar').disabled=tab==='municipios' && !cidades.length;
+      el('status').hidden = true;
+    }
+    document.querySelectorAll('[data-tab]').forEach(b => {
+      b.addEventListener('click',()=>activate(b.dataset.tab));
+      b.addEventListener('keydown',event => {
+        if (!['ArrowRight','ArrowLeft','Home','End'].includes(event.key)) return;
+        event.preventDefault(); const tabs=[...document.querySelectorAll('[data-tab]')];let i=tabs.findIndex(t=>t.dataset.tab===tab);
+        if (event.key==='ArrowRight') i=(i+1)%tabs.length; else if(event.key==='ArrowLeft') i=(i+tabs.length-1)%tabs.length; else if(event.key==='Home') i=0; else i=tabs.length-1;
+        activate(tabs[i].dataset.tab,true);
+      });
+    });
+    el('busca-municipio').addEventListener('input',()=>{ if (tab==='municipios' && !cityChoice()) { el('status').hidden = true; } });
+    function metric(label,value,description) {
+      const card=node('article','metric');card.append(node('span','label',label),node('strong','value',fmt(value)),node('span','explain',description));return card;
+    }
+    function details(title,text) { const info=node('div','analysis');info.append(node('h3','',title),node('p','',text));return info; }
+    function rankItem(label,subtitle,value,top) {
+      const box=node('article','rank-item'),row=node('div','rank-top'),left=node('div',''),right=node('div','rank-value');
+      left.append(node('div','rank-title',label),node('div','rank-meta',subtitle));right.append(node('span','',fmt(value)),node('small','','acidentes registrados'));
+      row.append(left,right);const track=node('div','track');track.setAttribute('aria-hidden','true');const fill=node('div','fill');fill.style.width=(top?Math.max(0,Math.min(100,100*Number(value||0)/top)):0)+'%';track.append(fill);box.append(row,track);return box;
+    }
+    function drawMunicipio(data,city) {
+      const area=el('conteudo-resultados');
+      if (!data.length) {area.append(node('div','empty','Nenhum registro disponível para a seleção.'));return;}
+      const item=data[0],cards=node('div','cards');
+      cards.append(metric('Acidentes registrados',item.accidents,'Ocorrências de trânsito na base PRF'),metric('Mortes registradas',item.deaths,'Mortes associadas às ocorrências'),metric('Feridos graves',item.serious_injuries,'Pessoas com lesões graves registradas'));
+      area.append(cards,details('Sobre este resultado',`Esses números se referem aos registros da PRF associados a ${city}. Não incluem todos os acidentes nas vias urbanas e estaduais do município.`));
+    }
+    function drawRanking(data,kind) {
+      const area=el('conteudo-resultados');
+      if (!data.length) {const box=node('div','empty');box.append(node('strong','', 'Nenhum registro disponível'),node('span','', 'Tente outro ano.'));area.append(box);return;}
+      const list=node('div','ranking');const max=Math.max(...data.map(x=>Number(x.accidents)||0),1);
+      data.forEach((item,i)=>{
+        let title,subtitle;
+        if (kind==='rodovias') {title=String(item.highway||'Rodovia não informada');subtitle=fmt(item.deaths)+' mortes registradas';}
+        else {
+          const from=item.segment_start_km??item.km_start??item.start_km;
+          const to=item.segment_end_km??item.km_end??item.end_km;
+          title=String(item.highway||'Rodovia')+(from!=null&&to!=null?' · km '+fmt(from)+'–'+fmt(to):' · trecho '+(i+1));
+          subtitle=fmt(item.deaths)+' mortes registradas';
+        }
+        list.append(rankItem(title,subtitle,item.accidents,max));
+      });
+      area.append(list,details('Como ler este ranking',kind==='rodovias'?'Mostra o maior número absoluto de acidentes registrados. Uma rodovia com mais tráfego pode aparecer no topo sem ser proporcionalmente mais perigosa.':'Mostra segmentos de 10 km com maior concentração observada de acidentes. Isso não é uma previsão de onde acontecerá o próximo acidente.'));
+    }
+    async function consult(event) {
+      event.preventDefault();
+      if (controller) controller.abort();
+      controller=new AbortController();const current=++seq;const year=el('ano').value;
+      const selectedCity=cityChoice();
+      const cityCode=selectedCity ? String(selectedCity.ibge_code) : '';
+      if (tab==='municipios'&&!selectedCity) {status('Escolha um município válido da lista. Digite o nome completo, por exemplo: Fortaleza.','error');return;}
+      loading(true);el('resultados').hidden=true;status('Buscando registros... Se o servidor estiver em repouso, a primeira consulta pode demorar até cerca de um minuto.');
+      const slow=setTimeout(()=>{if(current===seq)status('O servidor ainda está iniciando. Continue aguardando ou tente novamente em instantes.');},8000);
+      const timeout=setTimeout(()=>controller.abort(),90000);
+      const kind=tab;
+      let path='';
+      try {
+        if(kind==='municipios')path='/api/v1/municipios/'+encodeURIComponent(cityCode)+'/indicadores?ano='+year;
+        else if(kind==='rodovias')path='/api/v1/rodovias?ano='+year+'&limit=5';
+        else path='/api/v1/trechos-criticos?ano='+year+'&limit=5';
+        const result=await getJson(path,{signal:controller.signal});if(current!==seq)return;
+        clear(el('conteudo-resultados'));const selected=cidades.find(c=>String(c.ibge_code)===cityCode);
+        const city=selected?selected.municipality:'Município selecionado';
+        el('titulo-resultados').textContent=kind==='municipios'?city+' em '+year:names[kind]+' · '+year;
+        el('subtitulo-resultados').textContent='Fonte: PRF · base publicada do projeto Segurança Viária CE';
+        el('link-fonte').href=path;
+        if (kind==='municipios') drawMunicipio(result.data||[],city); else drawRanking(result.data||[],kind);
+        el('nota-resultados').textContent=note(year);
+        el('resultados').hidden=false;el('status').hidden=true;
+        el('resultados').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+      } catch(err) {
+        if(current!==seq)return;
+        status(err.name==='AbortError'?'A consulta demorou demais. Atualize a página ou tente novamente; no plano gratuito, o servidor pode precisar iniciar.':(err.message||'Não foi possível realizar a consulta.'),'error');
+      } finally {clearTimeout(slow);clearTimeout(timeout);if(current===seq)loading(false);}
+    }
+    el('consulta').addEventListener('submit',consult);
+    activate('municipios');loadCities();
+  })();
+  </script>
+</body>
+</html>
