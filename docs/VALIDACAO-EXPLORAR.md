@@ -1,41 +1,71 @@
-# Validação externa — Interface /explorar
+# Validação externa — interface /explorar (protocolo revisado em 23/11/2026)
 
-**Objetivo:** verificar se uma pessoa externa ao projeto, sem familiaridade com APIs, consegue obter e interpretar os dados sem apoio da equipe.
+## Objetivo e escopo
 
-## Antes de começar
+Avaliar se pessoas externas à equipe conseguem consultar e interpretar dados de acidentes de rodovias federais do Ceará usando a interface `/explorar`, sem orientação durante as tarefas. O resultado é **exploratório**, especialmente com amostra pequena e por conveniência: não prova que o produto seja fácil para toda a população, nem que `/explorar` seja melhor que o Swagger.
 
-- Conferir se a URL pública `/explorar` já está atualizada no Render. Se ainda não estiver, **não** iniciar o teste externo; aguardar o deploy.
-- Explicar que a participação é voluntária e pedir autorização para guardar as respostas anonimizadas como evidência do projeto. Não publicar nomes, telefones, áudios, endereços de e-mail ou imagens de rosto.
-- Enviar apenas a URL `https://api-seguranca-viaria-ce.onrender.com/explorar` e o enunciado abaixo, sem ensinar os passos.
-- Registrar data, perfil aproximado da pessoa e versão/commit do serviço testado.
+**Página testada:** https://api-seguranca-viaria-ce.onrender.com/explorar
+**Formulário público:** https://docs.google.com/forms/d/e/1FAIpQLScYO5dqllE4L5dsXwMkozAsHMAAKx6R3SFJlDqfUKCRIJj8Kg/viewform
+**Registro privado de respostas:** planilha vinculada ao Forms, com acesso restrito. Não publicar seus dados brutos no GitHub.
 
-## Enunciado para a pessoa participante
+## Controles de viés
 
-> Estamos avaliando uma página de consulta a dados públicos. Sem pedir ajuda, tente: (1) descobrir o número de acidentes registrados em Fortaleza em 2025; (2) encontrar a rodovia federal com mais registros em 2025; (3) encontrar um trecho de 10 km entre os mais críticos; (4) dizer uma limitação que deve ser lembrada ao interpretar esses dados. Não tem problema errar: queremos descobrir o que precisamos melhorar.
+1. **Convite neutro:** não antecipar que a interface é fácil, intuitiva, superior à API ou que a pessoa deve gostar dela. Ex.: "Estamos avaliando uma página de consulta de dados públicos. Tente algumas atividades sem ajuda e conte como foi. Se não conseguir, isso também é útil para o estudo."
+2. **Participantes externos:** não incluir integrantes, autores nem pessoas que conheçam a implementação. Buscar perfis variados; anotar apenas perfil amplo e familiaridade prévia com APIs.
+3. **Nenhuma intervenção:** não dizer em qual aba clicar, não mostrar o caminho nem corrigir a resposta durante as tarefas. Anotar dificuldades sem orientar. Se a pessoa pedir ajuda, registrar esse fato.
+4. **Tarefa objetiva versus opinião:** marcar *acerto do resultado* separadamente da autoavaliação "consegui" e da nota de facilidade. Resposta autodeclarada não é prova de conclusão correta.
+5. **Mesmas instruções para todos:** usar as quatro tarefas já presentes no Forms, nessa ordem, sem fornecer respostas de referência.
+6. **Versionar a interface:** registrar data, URL, commit ou versão e dispositivo da sessão. Em 23/11 a interface tinha Fortaleza pré-preenchida; na revisão o município passa a iniciar vazio. Respostas anteriores e posteriores a essa mudança devem ser identificadas como versões diferentes e não somadas indiscriminadamente como se as condições fossem idênticas.
+7. **Não remover explicações úteis:** textos sobre cobertura da PRF e limites dos dados fazem parte da experiência de uso. A quarta tarefa mede se a pessoa consegue encontrar e compreender uma limitação divulgada na interface, não se ela chega sozinha a uma conclusão científica inédita.
+8. **Ano predefinido:** 2025 continua selecionado por padrão. A primeira tarefa **não avalia** a capacidade de alterar o ano. Não alegar isso no relatório.
+9. **Disponibilidade:** antes do convite, conferir que a URL pública serve a versão a ser testada. Falha de rede, demora no Render ou indisponibilidade são resultados relevantes, não motivo para marcar a tarefa como concluída.
 
-## Ficha de sessão — preencher com fatos observados
+## Instruções para participante (copiar sem acrescentar dicas)
+
+> Estamos avaliando uma página de consulta a dados públicos. Use o link para tentar as tarefas abaixo sem ajuda e depois responda ao formulário. Não tem problema se alguma tarefa não der certo. Queremos saber o que aconteceu de verdade.
+>
+> 1. Descubra quantos acidentes foram registrados em Fortaleza em 2025.
+> 2. Identifique a rodovia federal com mais acidentes registrados em 2025.
+> 3. Identifique um trecho de 10 km entre os que apresentam mais acidentes em 2025.
+> 4. Encontre e explique, com suas palavras, uma limitação importante desses dados.
+>
+> Site: https://api-seguranca-viaria-ce.onrender.com/explorar
+> Formulário: https://docs.google.com/forms/d/e/1FAIpQLScYO5dqllE4L5dsXwMkozAsHMAAKx6R3SFJlDqfUKCRIJj8Kg/viewform
+
+## Ficha de observação da sessão
 
 - ID anônimo: P___
-- Data e hora:
-- Perfil geral (ex.: estudante de jornalismo):
+- Data e horário (fuso):
+- Versão/commit no Render (ou "não confirmado"):
 - Dispositivo: celular / computador / outro
-- Link e commit/versão testados:
-- Consentimento para uso de respostas anonimizadas: sim / não
-- Tempo total (min):
-- Tarefa 1: concluiu sozinho / não concluiu — resposta e dificuldade:
-- Tarefa 2: concluiu sozinho / não concluiu — resposta e dificuldade:
-- Tarefa 3: concluiu sozinho / não concluiu — resposta e dificuldade:
-- Tarefa 4: concluiu sozinho / não concluiu — resposta e dificuldade:
-- O que mais confundiu? (resposta textual original):
-- Qual melhoria faria? (resposta textual original):
-- Facilidade de 0 a 10 (resposta original):
-- Evidência primária guardada: exportação do Forms / captura autorizada / outro registro original
-- Arquivo de comprovação anonimizado em `evidencias/`:
+- Área geral e experiência prévia com APIs (sem identificar a pessoa):
+- Participação voluntária e autorização para citações: sim / não (conforme Forms)
+- A pessoa já tinha acessado essa interface? sim / não / não informado
+- Fez as tarefas sem ajuda? sim / não — se não, como ocorreu a intervenção?
+- Tempo total (apenas se observado):
 
-## Após a sessão
+| Tarefa | Autodeclarou conclusão? | Resultado que informou | Correto? | Observação objetiva |
+| :-- | :-- | :-- | :-- | :-- |
+| Fortaleza 2025 | sim/não |  | sim/não/não verificável |  |
+| Rodovia com mais acidentes, 2025 | sim/não |  | sim/não/não verificável |  |
+| Trecho de 10 km, 2025 | sim/não |  | sim/não/não verificável |  |
+| Limitação de interpretação | sim/não |  | sim/não/não verificável |  |
 
-- Guardar exportação **original** das respostas e uma cópia anonimizada para o repositório, respeitando o consentimento. Não fabricar participantes nem preencher respostas por eles.
-- Vincular a ficha e o comprovante a `evidencias.csv` sem contar o mesmo participante duas vezes.
-- Registrar obstáculos e decisões de produto no diário **na semana em que ocorreram**.
-- Registrar qualquer modificação efetivamente realizada e os testes posteriores. Não afirmar melhora sem medi-la.
-- Se a API cair ou demorar a iniciar, registrar essa falha: ela é um resultado relevante do teste.
+- Nota de facilidade informada (0–10):
+- Dificuldade ou melhoria (transcrição anonimizada e autorizada):
+- Fonte da resposta original, guardada privadamente:
+- Evidência anonimizada, se apropriado: `evidencias/...`
+
+**Como conferir acertos:** consultar a API com os mesmos filtros e a versão de dados testada, registrando os resultados de referência em arquivo interno. Para a tarefa 3, mais de um trecho pode ser aceitável, conforme a redação "entre os que apresentam mais acidentes"; não exigir necessariamente o primeiro do ranking. Na tarefa 4, aceitar qualquer limitação relevante e coerente com as fontes; não exigir uma frase exata.
+
+## Depois de coletar
+
+- Preservar respostas originais e consentimentos em local privado; publicar somente agregados ou trechos anonimizados e autorizados. Não publicar nomes, telefones, e-mails, rostos ou a planilha integral.
+- Identificar versões da interface; se houver respostas anteriores à revisão, não editar nem reclassificar seus textos originais. Relatar a diferença metodológica.
+- Resumir por tarefa: número de pessoas elegíveis, número de acertos verificáveis, dificuldades observadas, nota de facilidade (com n), tempo **apenas se efetivamente medido** e sugestões recebidas.
+- Apontar explicitamente o tamanho pequeno da amostra e o recrutamento por conveniência. Evitar conclusões causais ou significância estatística com poucos participantes.
+- Vincular cada evidência anônima ao `evidencias.csv` sem duplicar participantes. Registrar no diário as decisões e, só depois de implementar, as melhorias decorrentes do feedback.
+- Há registros de testes anteriores ao desenvolvimento do `/explorar`, realizados no Swagger/API. **Não tratá-los como testes da interface visual** nem como comparação controlada entre os dois modos de consulta.
+- Para uma comparação Swagger x interface, criar experimento separado, com grupos comparáveis, tarefas equivalentes, ordem e versão controladas; não inferir superioridade a partir de participantes diferentes e condições não controladas.
+
+Use o modelo [`FICHA-RESULTADOS-USABILIDADE.md`](FICHA-RESULTADOS-USABILIDADE.md) para consolidar sem inventar resultados.
