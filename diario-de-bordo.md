@@ -271,6 +271,14 @@
 
 ---
 
+### Verificação complementar — fechamento do Marco 3
+
+- Victor: publicação do fechamento em `cbbe7bc`, com nove arquivos alterados e 139 testes aprovados. Auditoria: sete registros, zero erros estruturais e três alertas referentes às evidências textuais antigas.
+- O teste inicial via urllib falhou por certificados locais; em nova execução informada pelo integrante com httpx, as cinco rotas retornaram 200. Reteste registrado em `evidencias/2026-11-27-verificacao-http-reteste.json`: 5/5 rotas HTTP 200. Não foi confirmada a presença de todos os quatro marcadores das correções no HTML público; verificar deploy e interação.
+- Autoavaliação individual consolidada a partir do diário e dos commits, com revisão pessoal necessária. A duração do trabalho adicional de 27/11 não foi aferida. Permanecem pendentes a confirmação de independência/unicidade dos respondentes, o reteste externo e as demais autoavaliações.
+
+---
+
 ## Semana 12 — 04/12/2026
 
 > **Socialização**.

@@ -11,14 +11,15 @@
 
 A interface de consulta guiada e as rotas de API estão implementadas no repositório. O Marco 2 registrou resultados públicos de 299 acidentes em Fortaleza (2025) e os trechos BR-116 km 0–10 e km 10–20. Esses são resultados históricos documentados, não uma nova medição.
 
-**Verificação HTTP da versão publicada antes da nova revisão:**
-- `https://api-seguranca-viaria-ce.onrender.com/health`: não confirmado; ver JSON de evidência.
-- `https://api-seguranca-viaria-ce.onrender.com/explorar`: não confirmado; ver JSON de evidência.
-- `https://api-seguranca-viaria-ce.onrender.com/api/v1/municipios/2304400/indicadores?ano=2025`: não confirmado; ver JSON de evidência.
-- `https://api-seguranca-viaria-ce.onrender.com/api/v1/rodovias?ano=2025&limit=3`: não confirmado; ver JSON de evidência.
-- `https://api-seguranca-viaria-ce.onrender.com/api/v1/trechos-criticos?ano=2025&limit=3`: não confirmado; ver JSON de evidência.
+**Verificação HTTP após o commit `cbbe7bc`:**
 
-Evidência técnica: [`evidencias/2026-11-27-verificacao-http.json`](evidencias/2026-11-27-verificacao-http.json). Testes locais da revisão: **139 testes aprovados nesta execução**. A publicação das alterações desta revisão deve ser confirmada após integração e deploy; os testes acima não comprovam o novo deploy.
+- `https://api-seguranca-viaria-ce.onrender.com/health`: HTTP 200.
+- `https://api-seguranca-viaria-ce.onrender.com/explorar`: HTTP 200.
+- `https://api-seguranca-viaria-ce.onrender.com/api/v1/municipios/2304400/indicadores?ano=2025`: HTTP 200.
+- `https://api-seguranca-viaria-ce.onrender.com/api/v1/rodovias?ano=2025&limit=3`: HTTP 200.
+- `https://api-seguranca-viaria-ce.onrender.com/api/v1/trechos-criticos?ano=2025&limit=3`: HTTP 200.
+
+**5/5 rotas retornaram HTTP 200.** Status do banco: `ready`; datasets disponíveis: 7. Não foi confirmada a presença de todos os quatro marcadores das correções no HTML público; verificar deploy e interação. Evidência: [`evidencias/2026-11-27-verificacao-http-reteste.json`](evidencias/2026-11-27-verificacao-http-reteste.json). O teste inicial falhou na cadeia de certificados do Python local; o histórico foi preservado. Um teste intermediário com httpx, informado pelo integrante, obteve 200 nas cinco rotas. Testes locais da revisão: **139 testes aprovados**. Não somamos verificações técnicas à métrica de alcance externo.
 
 ## Campo 2 — O que mudou desde o Marco 2
 
@@ -40,13 +41,13 @@ Facilidade média 8,17/10. Conclusão autodeclarada: 11/12 para município, rodo
 
 ## Campo 4 — Obstáculo e replanejamento
 
-A devolutiva do Marco 2 exigiu comprovação de alcance além dos relatos escritos pela equipe. Priorizamos coleta real, anonimização e vínculo das melhorias com os comentários. O Forms anterior foi longo, e parte das respostas não contém valores concretos das tarefas. O recorte de versão por participante, identidade externa e duplicação não pôde ser confirmado apenas pelas respostas. Próximos passos: confirmar elegibilidade, retestar as duas correções com usuários independentes, verificar deploy da nova revisão, coletar logs recentes e preparar a socialização de 04/12.
+A devolutiva do Marco 2 exigiu comprovação de alcance além dos relatos escritos pela equipe. Priorizamos coleta real, anonimização e vínculo das melhorias com os comentários. O Forms anterior foi longo, e parte das respostas não contém valores concretos das tarefas. O recorte de versão por participante, identidade externa e duplicação não pôde ser confirmado apenas pelas respostas. Próximos passos: confirmar elegibilidade, retestar as duas correções com usuários independentes, verificar interação das correções e registrar a versão exata implantada, coletar logs recentes e preparar a socialização de 04/12.
 
 ## Campo 5 — Autopontuação proposta (a validar pela equipe)
 
 | Dimensão | n.a.? | Pts (0–2) | Justificativa |
 | --- | --- | ---: | --- |
-| D1 Qualidade técnica | não | 1 | Interface/API implementadas; 139 testes aprovados nesta execução; ver evidências HTTP e confirmação de deploy pendente. |
+| D1 Qualidade técnica | não | 1 | Interface/API implementadas; 139 testes aprovados e 5/5 rotas HTTP 200 no reteste; deploy das correções ainda não comprovado. |
 | D2 Alcance e adequação ao público | não | 1 | Há respostas reais e melhorias vinculadas, mas não foi confirmada independência/retentativa. |
 | D3 Documentação e reprodutibilidade | não | 2 | README, rotas, exemplos, dados, limitações e protocolo versionados. |
 | D4 Registro do processo | não | 1 | Diário e evidências atualizados; horas/atribuições adicionais e comprovações antigas ainda incompletas. |
@@ -56,7 +57,7 @@ A devolutiva do Marco 2 exigiu comprovação de alcance além dos relatos escrit
 
 - [x] Fonte, data, licença e limitações no README.
 - [x] Rotas documentadas com exemplos e erros, observadas as limitações descritas.
-- [ ] URL pública anterior confirmada por verificação técnica; conferir novo deploy.
+- [x] Disponibilidade pública: 5/5 rotas HTTP 200; confirmar marcadores das correções no deploy.
 - [x] Evidência quantitativa e qualitativa registradas (Forms anonimizado e logs históricos).
 - [x] Diário complementado, sem inventar horas.
 - [ ] Confirmar independência e unicidade de participantes, retestar melhorias e registrar versão.

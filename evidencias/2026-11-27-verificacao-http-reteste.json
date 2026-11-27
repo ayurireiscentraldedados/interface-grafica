@@ -1,0 +1,48 @@
+{
+  "tipo": "verificacao tecnica posterior ao commit; nao alcance externo",
+  "base_git_local": "cbbe7bc5838853fa1c6362f01f9f0f2d227007d1",
+  "checks": [
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/health",
+      "data_hora_utc": "2026-11-27T20:58:02.014328+00:00",
+      "status_http": 200,
+      "ok": true
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/explorar",
+      "data_hora_utc": "2026-11-27T20:58:02.477813+00:00",
+      "status_http": 200,
+      "ok": true
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/api/v1/municipios/2304400/indicadores?ano=2025",
+      "data_hora_utc": "2026-11-27T20:58:02.693947+00:00",
+      "status_http": 200,
+      "ok": true
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/api/v1/rodovias?ano=2025&limit=3",
+      "data_hora_utc": "2026-11-27T20:58:02.958028+00:00",
+      "status_http": 200,
+      "ok": true
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/api/v1/trechos-criticos?ano=2025&limit=3",
+      "data_hora_utc": "2026-11-27T20:58:03.368022+00:00",
+      "status_http": 200,
+      "ok": true
+    }
+  ],
+  "health": {
+    "status": "ok",
+    "database": "ready",
+    "datasets_available": 7
+  },
+  "marcadores_html": {
+    "Município (obrigatório)": false,
+    "Digite parte do nome.": false,
+    "el('busca-municipio').required=tab==='municipios'": false,
+    "fold(c.municipality).startsWith(typed)": false
+  },
+  "nota": "Não foi confirmada a presença de todos os quatro marcadores das correções no HTML público; verificar deploy e interação."
+}
