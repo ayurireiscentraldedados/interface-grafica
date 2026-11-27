@@ -64,3 +64,18 @@ def test_municipio_nao_vem_preenchido_com_a_primeira_tarefa():
     html = TestClient(app).get('/explorar').text
     assert 'id="busca-municipio"' in html
     assert 'value="Fortaleza"' not in html
+
+
+def test_feedback_marco3_campos_e_busca_parcial():
+    """Verifica contrato estático da interface; não substitui teste no navegador."""
+    app = FastAPI()
+    app.include_router(router)
+    html = TestClient(app).get('/explorar').text
+    assert 'novalidate' in html
+    assert 'Município (obrigatório)' in html
+    assert "el('busca-municipio').disabled=tab!=='municipios'" in html
+    assert "el('busca-municipio').required=tab==='municipios'" in html
+    assert 'matches.length === 1 ? matches[0] : null' in html
+    assert 'Há mais de um município' in html
+    assert 'Informe o município para consultar.' in html
+    assert "input.setAttribute('aria-invalid','true')" in html

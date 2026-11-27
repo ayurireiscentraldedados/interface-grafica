@@ -261,6 +261,16 @@
 
 ---
 
+### Complemento de fechamento — 27/11/2026
+
+- Consolidadas 12 respostas anonimizadas do Forms em 23–24/11, com evidência primária transcrita em `evidencias/2026-11-27-forms-usabilidade-anonimizado.csv`. Média de facilidade 8,17/10. Vínculo externo, unicidade e versão por participante ainda precisam ser confirmados; não se contabiliza conclusão autodeclarada como acerto.
+- Duas melhorias implementadas no código da interface com base nos comentários P07 e P08: validação contextual de campos entre abas e aceitação de prefixo único na busca de município. Reteste com público pendente.
+- Testes automatizados: 139 testes aprovados nesta execução. Verificação pública técnica registrada separadamente em `evidencias/2026-11-27-verificacao-http.json`; não conta como alcance externo.
+- Horas e atribuições adicionais precisam ser confirmadas pelos respectivos integrantes; não foram estimadas retroativamente.
+- Consolidado o `marco-3.md`, mantendo explícitas as limitações de alcance e de publicação da revisão.
+
+---
+
 ## Semana 12 — 04/12/2026
 
 > **Socialização**.

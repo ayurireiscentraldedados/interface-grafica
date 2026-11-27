@@ -14,9 +14,9 @@
 
 ### 2. As três coisas mais substanciais que você produziu ou conduziu
 
-1. [atividade real + arquivo/commit/evidência]
-2. [atividade real + arquivo/commit/evidência]
-3. [atividade real + arquivo/commit/evidência]
+1. Auditoria de evidências: `scripts/auditar_evidencias.py` e `tests/test_auditar_evidencias.py` (PR #5).
+2. Interface `/explorar`, redirecionamento inicial, documentação e testes: `app/explorer.py`, `app/static/explorar.html`, `app/main.py`, `tests/test_explorar.py` (PR #5).
+3. Protocolo e formulário de validação externa, com 12 respostas registradas e síntese em `docs/FICHA-RESULTADOS-USABILIDADE.md`.
 
 ### 3. Quanto tempo a ação consumiu por semana?
 
@@ -26,9 +26,9 @@
 
 | Indicador | Planejado | Obtido |
 | :-- | :-- | :-- |
-| consultas úteis bem-sucedidas | ≥ 30 | [PREENCHER] |
-| pessoas externas testando | ≥ 3 | [PREENCHER] |
-| mudanças motivadas pelo público | ≥ 2 | [PREENCHER] |
+| consultas úteis bem-sucedidas | ≥ 30 | 41 históricas (14/10–12/11) |
+| pessoas externas testando | ≥ 3 | 12 respostas; vínculo externo e unicidade a confirmar |
+| mudanças motivadas pelo público | ≥ 2 | 2 alterações vinculadas a feedback; reteste pendente |
 
 ### Onde a diferença entre planejado e obtido foi maior?
 

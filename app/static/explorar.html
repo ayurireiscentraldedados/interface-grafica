@@ -145,16 +145,16 @@
         <button class="tab" id="tab-rodovias" type="button" role="tab" aria-selected="false" aria-controls="consulta" tabindex="-1" data-tab="rodovias">Rodovias</button>
         <button class="tab" id="tab-trechos" type="button" role="tab" aria-selected="false" aria-controls="consulta" tabindex="-1" data-tab="trechos">Trechos de 10 km</button>
       </div>
-      <form id="consulta" class="form">
+      <form id="consulta" class="form" novalidate>
         <div class="field" id="campo-municipio">
-          <label for="busca-municipio">Município</label>
+          <label for="busca-municipio">Município (obrigatório)</label>
           <div class="city-controls">
             <input id="busca-municipio" type="text" list="municipio" autocomplete="off" placeholder="Digite o nome do município" aria-describedby="ajuda-municipio" required>
             <datalist id="municipio"></datalist>
           </div>
-          <p class="help" id="ajuda-municipio">Digite ou escolha um município da lista.</p>
+          <p class="help" id="ajuda-municipio">Digite parte do nome. Se houver uma única correspondência, ela será utilizada; se houver várias, selecione uma opção.</p>
         </div>
-        <div class="field"><label for="ano">Ano dos registros</label><select id="ano" required><option value="2025" selected>2025 — completo</option><option value="2024">2024 — completo</option><option value="2026">2026 — parcial*</option></select></div>
+        <div class="field"><label for="ano">Ano dos registros (obrigatório)</label><select id="ano" required><option value="2025" selected>2025 — completo</option><option value="2024">2024 — completo</option><option value="2026">2026 — parcial*</option></select></div>
         <button class="cta" id="consultar" type="submit">Consultar</button>
       </form>
       <div class="notice">A consulta cobre apenas <b>rodovias federais</b>, não ruas da cidade. Os dados de <b>2026</b> vão até <b>31/08/2026</b>.</div>
@@ -208,7 +208,11 @@
     }
     function cityChoice() {
       const typed = fold(el('busca-municipio').value.trim());
-      return cidades.find(c => fold(c.municipality) === typed) || null;
+      if (!typed) return null;
+      const exact = cidades.find(c => fold(c.municipality) === typed);
+      if (exact) return exact;
+      const matches = cidades.filter(c => fold(c.municipality).startsWith(typed));
+      return matches.length === 1 ? matches[0] : null;
     }
     async function loadCities() {
       try {
@@ -232,6 +236,9 @@
       tab=value;
       for (const b of document.querySelectorAll('[data-tab]')) { const active=b.dataset.tab===tab; b.setAttribute('aria-selected',String(active)); b.tabIndex=active?0:-1; if (active && focus) b.focus(); }
       el('campo-municipio').hidden=tab!=='municipios';
+      el('busca-municipio').disabled=tab!=='municipios';
+      el('busca-municipio').required=tab==='municipios';
+      el('busca-municipio').removeAttribute('aria-invalid');
       el('resultados').hidden=true;
       el('consultar').disabled=tab==='municipios' && !cidades.length;
       el('status').hidden = true;
@@ -245,7 +252,10 @@
         activate(tabs[i].dataset.tab,true);
       });
     });
-    el('busca-municipio').addEventListener('input',()=>{ if (tab==='municipios' && !cityChoice()) { el('status').hidden = true; } });
+    el('busca-municipio').addEventListener('input',()=>{
+      el('busca-municipio').removeAttribute('aria-invalid');
+      if (tab==='municipios') el('status').hidden=true;
+    });
     function metric(label,value,description) {
       const card=node('article','metric');card.append(node('span','label',label),node('strong','value',fmt(value)),node('span','explain',description));return card;
     }
@@ -285,7 +295,18 @@
       controller=new AbortController();const current=++seq;const year=el('ano').value;
       const selectedCity=cityChoice();
       const cityCode=selectedCity ? String(selectedCity.ibge_code) : '';
-      if (tab==='municipios'&&!selectedCity) {status('Escolha um município válido da lista. Digite o nome completo, por exemplo: Fortaleza.','error');return;}
+      if (tab==='municipios'&&!selectedCity) {
+        const input=el('busca-municipio');
+        input.setAttribute('aria-invalid','true');
+        const typed=fold(input.value.trim());
+        const matches=typed ? cidades.filter(c=>fold(c.municipality).startsWith(typed)) : [];
+        status(!typed ? 'Informe o município para consultar.' : matches.length > 1 ? 'Há mais de um município com esse início. Escolha na lista ou digite mais letras.' : 'Município não encontrado. Confira o nome ou escolha na lista.','error');
+        input.focus();return;
+      }
+      if (tab==='municipios') {
+        el('busca-municipio').value=selectedCity.municipality;
+        el('busca-municipio').removeAttribute('aria-invalid');
+      }
       loading(true);el('resultados').hidden=true;status('Buscando registros... Se o servidor estiver em repouso, a primeira consulta pode demorar até cerca de um minuto.');
       const slow=setTimeout(()=>{if(current===seq)status('O servidor ainda está iniciando. Continue aguardando ou tente novamente em instantes.');},8000);
       const timeout=setTimeout(()=>controller.abort(),90000);

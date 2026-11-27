@@ -1,0 +1,36 @@
+{
+  "tipo": "verificacao tecnica, nao alcance externo",
+  "nota": "Não comprova deploy da revisão ainda não publicada.",
+  "checks": [
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/health",
+      "data_hora_utc": "2026-11-27T20:53:50.186726+00:00",
+      "ok": false,
+      "erro": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)>"
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/explorar",
+      "data_hora_utc": "2026-11-27T20:53:50.495734+00:00",
+      "ok": false,
+      "erro": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)>"
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/api/v1/municipios/2304400/indicadores?ano=2025",
+      "data_hora_utc": "2026-11-27T20:53:50.598542+00:00",
+      "ok": false,
+      "erro": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)>"
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/api/v1/rodovias?ano=2025&limit=3",
+      "data_hora_utc": "2026-11-27T20:53:50.700995+00:00",
+      "ok": false,
+      "erro": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)>"
+    },
+    {
+      "url": "https://api-seguranca-viaria-ce.onrender.com/api/v1/trechos-criticos?ano=2025&limit=3",
+      "data_hora_utc": "2026-11-27T20:53:50.803547+00:00",
+      "ok": false,
+      "erro": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)>"
+    }
+  ]
+}

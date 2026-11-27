@@ -1,0 +1,15 @@
+id_anonimo,data,municipio,rodovia,trecho,limitacao,facilidade_0_10,resultados_declarados,comentario_autorizado,autorizacao
+P01,2026-11-23,N,N,N,N,5,,"não apareceu nada, só uma caixa de marcação",sim
+P02,2026-11-23,F,F,F,N,10,"299 acidentes, br116, trecho 0-10km.",Não tive dificuldade,sim
+P03,2026-11-23,F,F,F,F,9,,Não tive dificuldades,sim
+P04,2026-11-23,F,F,F,F,10,,não tive dificuldades,sim
+P05,2026-11-23,D,D,D,D,6,,menos burocrático,sim
+P06,2026-11-23,F,F,F,D,10,"Rodovia com mais acidentes (2025): BR-116
+Total de acidentes (PRF Ceará 2025): 1.302 ocorrências nas rodovias federais (ou 171 óbitos registrados em Fortaleza)",Não tive dificuldade,sim
+P07,2026-11-23,F,F,F,F,7,"BR 116, 138 acidentes","Alguns campos depende de outros e não tem mensagem de aviso informando a obrigatoriedade. Outro ponto a se considerar, seria a utilização do site, falta intuitividade.",sim
+P08,2026-11-23,F,F,F,D,9,,"Tive que escrever o nome ""Fortaleza"" por completo",sim
+P09,2026-11-23,F,D,F,F,7,"229 acidentes em Fortaleza por volta de 30 mortos
+Porém é uma estatística muito variável.",Deixar as listas mais auto explicativa.,sim
+P10,2026-11-23,F,F,F,D,5,,Não tive dificuldades,sim
+P11,2026-11-24,F,F,F,F,10,,Não tive nenhuma dificuldade. É intuitivo.,sim
+P12,2026-11-24,F,F,F,D,10,116 - número de acidentes foram de 707 em 2025,Não vejo o que melhorar tecnicamente. No mais só estética mesmo.,sim
