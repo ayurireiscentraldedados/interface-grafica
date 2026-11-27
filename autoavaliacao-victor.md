@@ -18,7 +18,25 @@ Meu papel começou no backend e na integração dos dados da camada Gold com a A
 
 ### 3. Quanto tempo a ação consumiu por semana?
 
-O diário registra 1h na semana de 18/09, 4h na semana de 09/10 e cerca de 5h em 23/11, totalizando aproximadamente 10h documentadas. Também houve trabalho de fechamento em 27/11, comprovado pelo commit `cbbe7bc`, mas sem duração aferida. Em relação às 28 horas de execução autônoma previstas, o registro disponível não comprova a carga integral. As horas restantes não podem ser estimadas retroativamente sem registro confiável.
+Recuperei os registros semanais e conferi o histórico de commits, mensagens e verificações técnicas. O tempo indicado abaixo inclui desenvolvimento, planejamento, investigação, testes, configuração, documentação e coordenação, não somente programação.
+
+| Data | Atividade | Tempo recuperado | Base |
+| :-- | :-- | --: | :-- |
+| 18/09 | Reunião, planejamento, criação e organização do repositório | 1h | Diário, semana 1 |
+| 07–09/10 | Preparação do serviço FastAPI, integração de dados Gold/DuckDB, testes, Docker/CI, documentação, correções de ambiente e publicação no Render | 4h | Diário, semana 4; commits de 07/10 |
+| 23/11, manhã | Revisão da devolutiva do Marco 2 e comunicação individual com o professor sobre a participação | ~5min | Intervalo de conversa 9h05–9h10; tempo administrativo separado |
+| 23/11, tarde | Auditoria e testes de evidências (2h); interface, redirecionamento, testes, documentação, organização da avaliação externa e integração (cerca de 3h) | ~5h | Diário, semana 11; PR #5–#7 |
+| 23/11, noite | Validação no Windows e revisão do protocolo de usabilidade | ~10min | Sessão 20h35–20h44; PR #8 |
+| 27/11 | Revisão da entrega, tratamento dos feedbacks, reteste público, resolução do erro de certificado local, publicação, comunicação à equipe e revisão individual | ~25min | Sessão 17h44–18h07; commits `cbbe7bc` e `d5375a0` |
+| **Subtotal recuperado** | | **~10h40min** | Registros e sessões identificadas |
+| 07–09/10 | Preparação e resolução de problemas adicionais de implantação, além das 4h do diário | ~1h30 | Estimativa retrospectiva; intervalo observado em 07/10 |
+| 23–27/11 | Divulgação e acompanhamento posterior do formulário | ~45min | Estimativa retrospectiva, excluindo elaboração do formulário |
+| Ao longo do semestre | Discussões, alinhamento e decisões com a equipe fora das sessões já contadas | ~2h | Estimativa retrospectiva, sem horários individualizados |
+| **Total ampliado estimado** | | **~14h55min** | Subtotal de 10h40min + estimativa adicional de 4h15min |
+
+Em 07/10, a conversa sobre o projeto teve registros às 9h08 e 15h35, intervalo de aproximadamente 6h27. Mantive as 4h anteriormente registradas, pois o intervalo entre mensagens não comprova trabalho contínuo. Nos dias 23 e 27/11, os horários das sessões adicionais sustentam aproximações, não medições exatas de tempo ativo. Não contei novamente as horas já registradas, nem tempo de outros projetos. A comunicação administrativa foi discriminada para que o professor possa decidir se deve compor a carga autônoma; sem ela, o total recuperado é cerca de 10h35min.
+
+O total ampliado de aproximadamente 14h55min inclui 4h15min estimadas para atividades adicionais, não comprovadas por apontamento de tempo. A faixa de sensibilidade é de 13h10min a 16h40min (acréscimos de 2h30min a 6h), sem contar novamente as sessões registradas. Os valores centrais foram escolhidos como aproximações das faixas discutidas e autorizadas para inclusão pelo integrante; não são horas aferidas. Frente às 28h previstas, não disponho de registros que comprovem a carga integral. A estimativa está sujeita à conferência pessoal e não substitui apontamento contemporâneo de horas.
 
 ## Parte 2 — O que aconteceu com a ação
 
