@@ -249,6 +249,7 @@
 - **Victor — preparação de avaliação:** criação de um Google Forms de usabilidade com planilha vinculada e simplificação do questionário para 7 perguntas após retorno de que a versão inicial estava longa. A pesquisa busca registrar tarefas concluídas, facilidade de uso e sugestões, sem coletar nome ou e-mail no formulário.
 - **Felipe — Busca de pessoas para testar a API** foi realizado um busca ativa atraves de postagem no linkedin e também compartilhamento com pessoas para utilização e preenchimento do formulario para o feedback da API.
 - **Integração e publicação:** alterações da branch `dev-victor` revisadas no PR #5, integrado à `main` em 23/11/2026. Victor informou que o deploy público da interface no Render já foi realizado; registrar captura/verificação datada da URL pública como comprovação de disponibilidade.
+- **Eduardo - Publicação do formulário:** divulgação do formulário de avaliação para pessoas de fora da equipe, preenchimento da autoavaliação individual.
 
 **Obstáculos:** Os três testes externos anteriores têm registros textuais, mas ainda precisam de comprovação primária verificável. Embora o deploy no Render tenha sido informado como concluído, a equipe ainda deve guardar uma evidência técnica datada do funcionamento público. O questionário inicial recebeu crítica por ser longo, levando à sua redução.
 
